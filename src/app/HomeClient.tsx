@@ -1,0 +1,1152 @@
+"use client";
+
+import { useRef, useState, useCallback, useEffect, useLayoutEffect } from "react";
+import Link from "next/link";
+import { QuoteButton, ShowroomButton } from "@/components/forms/CTAButtons";
+import Image from "next/image";
+import { motion, useScroll, useTransform } from "framer-motion";
+import ScrollReveal from "@/components/ui/ScrollReveal";
+import CortizoLogo from "@/components/logos/CortizoLogo";
+import SchucoLogo from "@/components/logos/SchucoLogo";
+import DeceuninckLogo from "@/components/logos/DeceuninckLogo";
+import ProductSelector from "@/components/ProductSelector";
+import type { HomeSettings } from "@/lib/homepage";
+import type { ProductCategory, BlogPost, Testimonial } from "@/lib/data";
+import type { PortfolioItem } from "@/lib/portfolio";
+import type { ProcessStep } from "@/lib/about";
+import { altTextFor } from "@/lib/altText";
+import ContentSection from "@/components/blocks/ContentSection";
+
+// Brand logos for the "Brands We Work With" cards (mirrors the landing page).
+// Schüco / Deceuninck / Cortizo are teal SVGs; GEX & Vetromax are teal PNGs.
+const brandLogos: Record<string, { Svg?: React.ComponentType<{ className?: string }>; img?: string }> = {
+  Cortizo: { Svg: CortizoLogo },
+  "Schüco": { Svg: SchucoLogo },
+  Deceuninck: { Svg: DeceuninckLogo },
+  Vetromax: { img: "/brand/logos/vetromax-teal.png" },
+  "Gulf Extrusions": { img: "/brand/logos/gulf-extrusions-teal.png" },
+};
+
+function BrandMark({ name }: { name: string }) {
+  const logo = brandLogos[name];
+  if (logo?.Svg) {
+    const Svg = logo.Svg;
+    return <Svg className="h-6 w-auto text-[#007969]" />;
+  }
+  if (logo?.img) {
+    return (
+      <div className="relative h-7 w-[112px]">
+        <Image src={logo.img} alt={`${name} logo`} fill className="object-contain" sizes="112px" />
+      </div>
+    );
+  }
+  // Fallback: minimal teal mark (brand with no logo asset)
+  return (
+    <div className="w-10 h-10 bg-[#f0fdf4] rounded-xl flex items-center justify-center">
+      <div className="w-3 h-3 rounded-sm bg-[#007969]" />
+    </div>
+  );
+}
+
+const MONTHS: Record<string, number> = {
+  January: 1, February: 2, March: 3, April: 4, May: 5, June: 6,
+  July: 7, August: 8, September: 9, October: 10, November: 11, December: 12,
+};
+const sortByDateDesc = (posts: BlogPost[]) =>
+  [...posts].sort((a, b) => {
+    const [aM, aY] = a.date.split(" ");
+    const [bM, bY] = b.date.split(" ");
+    return (parseInt(bY) * 100 + (MONTHS[bM] ?? 0)) - (parseInt(aY) * 100 + (MONTHS[aM] ?? 0));
+  });
+
+/* ── Dot indicator component ──────────────────────────────────────────────── */
+function Dots({ count, active, onDotClick }: { count: number; active: number; onDotClick: (i: number) => void }) {
+  return (
+    <div className="flex items-center justify-center gap-1 mt-6">
+      {Array.from({ length: count }).map((_, i) => (
+        <button
+          key={i}
+          onClick={() => onDotClick(i)}
+          aria-label={`Go to slide ${i + 1}`}
+          className="min-w-11 min-h-11 flex items-center justify-center"
+        >
+          <span
+            className={`block rounded-full transition-all duration-300 ${
+              active === i ? "w-5 h-1.5 bg-[#007969]" : "w-1.5 h-1.5 bg-gray-300"
+            }`}
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export default function HomeClient({
+  settings,
+  productCategories,
+  portfolioProjects,
+  blogPosts,
+  processSteps,
+  testimonials,
+}: {
+  settings: HomeSettings;
+  productCategories: ProductCategory[];
+  portfolioProjects: PortfolioItem[];
+  blogPosts: BlogPost[];
+  processSteps: ProcessStep[];
+  testimonials: Testimonial[];
+}) {
+  const sortedBlogPosts = sortByDateDesc(blogPosts);
+  // Editable section lists (Sanity-driven, defaults baked into getHomeSettings).
+  const usps = settings.usps;
+  const problems = settings.problems;
+  const transformFeatures = settings.transformFeatures;
+  const brands = settings.brandCards;
+  const heroRef = useRef<HTMLDivElement>(null);
+  const heroHeadingRef = useRef<HTMLHeadingElement>(null);
+  const heroContentRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
+  const [isTouch, setIsTouch] = useState(false);
+  useEffect(() => {
+    setIsTouch(window.matchMedia("(pointer: coarse)").matches);
+  }, []);
+
+  // Measured (not CSS-unit-guessed) safety net: shrink the hero heading directly
+  // if its rendered content ever starts above the fixed header's bottom edge.
+  // Catches devices/browsers where svh-based CSS sizing isn't supported or
+  // where the address bar height isn't accounted for by the CSS alone.
+  useLayoutEffect(() => {
+    function fitHero() {
+      const header = document.querySelector("header");
+      const h1 = heroHeadingRef.current;
+      const content = heroContentRef.current;
+      if (!header || !h1 || !content) return;
+      h1.style.fontSize = "";
+      const headerBottom = header.getBoundingClientRect().bottom;
+      const contentTop = content.getBoundingClientRect().top;
+      const buffer = 12;
+      const deficit = headerBottom + buffer - contentTop;
+      if (deficit > 0) {
+        const h1Height = h1.getBoundingClientRect().height;
+        const currentFontSize = parseFloat(getComputedStyle(h1).fontSize);
+        if (h1Height > 0 && currentFontSize > 0) {
+          const ratio = Math.max(0, 1 - deficit / h1Height);
+          const newFontSize = Math.max(24, currentFontSize * ratio * 0.96);
+          h1.style.fontSize = `${newFontSize}px`;
+        }
+      }
+    }
+    fitHero();
+    const t1 = setTimeout(fitHero, 300);
+    const t2 = setTimeout(fitHero, 1000);
+    window.addEventListener("resize", fitHero);
+    window.addEventListener("orientationchange", fitHero);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      window.removeEventListener("resize", fitHero);
+      window.removeEventListener("orientationchange", fitHero);
+    };
+  }, []);
+
+  /* carousel refs & active-slide state */
+  const productCarouselRef = useRef<HTMLDivElement>(null);
+  const portfolioCarouselRef = useRef<HTMLDivElement>(null);
+  const processCarouselRef = useRef<HTMLDivElement>(null);
+  const [activeProduct, setActiveProduct] = useState(0);
+  const [activePortfolio, setActivePortfolio] = useState(0);
+  const [activeProcess, setActiveProcess] = useState(0);
+
+  const onScroll = useCallback(
+    (ref: React.RefObject<HTMLDivElement | null>, setter: (i: number) => void) => {
+      const el = ref.current;
+      if (!el) return;
+      const idx = Math.round(el.scrollLeft / (el.clientWidth * 0.82));
+      setter(Math.max(0, idx));
+    },
+    []
+  );
+
+  const scrollTo = (ref: React.RefObject<HTMLDivElement | null>, i: number) => {
+    const el = ref.current;
+    if (!el) return;
+    el.scrollTo({ left: i * el.clientWidth * 0.82, behavior: "smooth" });
+  };
+
+  /* Product carousel items */
+  const productCards: Array<{
+    href: string; image?: string; label: string; title: string; sub: string; isImage: boolean;
+  }> = [
+    {
+      href: "/catalogue/aluminium-sliding-doors",
+      image: "/images/products/aluminium-sliding-doors.png",
+      label: "01",
+      title: "Aluminium Sliding Doors",
+      sub: "Lift-and-slide systems from Cortizo",
+      isImage: true,
+    },
+    ...productCategories.slice(1, 5).map((cat, i) => ({
+      href: `/catalogue/${cat.slug}`,
+      image: cat.image,
+      label: String(i + 2).padStart(2, "0"),
+      title: cat.name,
+      sub: cat.tagline,
+      isImage: true,
+    })),
+    {
+      href: "/catalogue/skylights",
+      image: "/images/products/skylights.png",
+      label: "Skylights & Garden Rooms",
+      title: "Transform unused space into living space.",
+      sub: "Roof windows that flood interiors with light",
+      isImage: true,
+    },
+  ];
+
+  /* Portfolio carousel items */
+  const portfolioCards = [
+    {
+      href: "/portfolio/4900-gallery",
+      image: "/brand/project-skylight-restaurant.jpg",
+      badge: "Commercial · Skylight",
+      title: "4900 Gallery — Dubai",
+      sub: "Large format glass skylight system",
+      featured: true,
+    },
+    ...portfolioProjects.slice(0, 4).map((p) => ({
+      href: `/portfolio/${p.slug}`,
+      image: p.image,
+      badge: p.type,
+      title: p.name,
+      sub: p.location,
+      featured: false,
+      project: p,
+    })),
+  ];
+
+  return (
+    <div className="flex flex-col">
+      {/* ── HERO ─────────────────────────────────────────────────────────── */}
+      <section ref={heroRef} className="relative hero-min-h overflow-hidden flex items-end bg-[#030a08] order-[10]">
+        {/* Poster image — LCP candidate, always visible */}
+        <div className="absolute inset-0 pointer-events-none">
+          <Image
+            src="/brand/hero-villa-dubai.png"
+            alt=""
+            fill
+            className="object-cover opacity-70"
+            priority
+            sizes="100vw"
+          />
+        </div>
+        {/* Video overlay — desktop only, loads after poster */}
+        {!isTouch && (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ transform: "translateZ(0)" }}>
+            <div
+              className="absolute top-1/2 left-1/2"
+              style={{
+                width: "max(100vw, calc(100vh * 16 / 9))",
+                height: "max(100vh, calc(100vw * 9 / 16))",
+                transform: "translate(-50%, -50%) scale(1.25)",
+              }}
+            >
+              <iframe
+                src={`https://www.youtube.com/embed/${settings.hero.videoId}?autoplay=1&mute=1&loop=1&playlist=${settings.hero.videoId}&controls=0&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&playsinline=1&vq=hd2160`}
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+                className="w-full h-full"
+                style={{ border: "none", pointerEvents: "none" }}
+                title="Swiftrooms showcase"
+              />
+            </div>
+          </div>
+        )}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(to top, rgba(3,10,8,0.95) 0%, rgba(0,80,68,0.45) 40%, rgba(0,30,25,0.30) 70%, rgba(0,0,0,0.50) 100%)",
+          }}
+        />
+        <motion.div
+          ref={heroContentRef}
+          className="relative z-10 w-full max-w-screen-xl mx-auto px-5 md:px-8 pb-24 md:pb-28"
+          style={isTouch ? undefined : { opacity: heroOpacity }}
+        >
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-label text-[#4dd9c0] mb-5 tracking-[0.2em]"
+          >
+            {settings.hero.eyebrow}
+          </motion.p>
+          <motion.h1
+            ref={heroHeadingRef}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="text-display text-white mb-6 max-w-5xl"
+          >
+            Premium Aluminium
+            <br />
+            <span className="text-[#4dd9c0]">Doors &amp; Windows</span> in Dubai, UAE
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.5 }}
+            className="text-body-lg text-white/70 max-w-xl mb-10"
+          >
+            {settings.hero.subheading}
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.65 }}
+            className="flex flex-col sm:flex-row gap-3"
+          >
+            <QuoteButton className="btn-brand">
+              {settings.hero.ctaPrimaryLabel}
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </QuoteButton>
+            <ShowroomButton className="inline-flex items-center justify-center gap-2 border border-white/40 text-white font-accent font-semibold text-[0.8rem] tracking-[0.12em] uppercase px-6 py-3.5 hover:bg-white hover:text-[#007969] transition-all">
+              {settings.hero.ctaSecondaryLabel}
+            </ShowroomButton>
+          </motion.div>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.6 }}
+          className="absolute bottom-8 right-8 hidden md:flex flex-col items-center gap-2"
+        >
+          <motion.div
+            animate={{ y: [0, 6, 0] }}
+            transition={{ duration: 1.4, repeat: Infinity }}
+            className="w-5 h-8 border border-white/30 rounded-full flex justify-center pt-1.5"
+          >
+            <div className="w-1 h-1 rounded-full bg-white/60" />
+          </motion.div>
+        </motion.div>
+      </section>
+
+      <div className="order-[20]">
+      <ContentSection
+        eyebrow="WHY IT'S CHANGING"
+        heading="UAE Homeowners Are Rethinking Their Glazing"
+        level={2}
+        paragraphs={[
+          "A decade ago, most villas got whatever aluminium the contractor had a relationship with, and owners rarely questioned the spec.",
+          "That's changed. Rising energy costs and a few brutal summers have pushed more people to ask what's actually behind the frame, thermal break width, glass coating, gasket quality, before signing off on aluminium doors and windows in Dubai that'll be in place for the next twenty years.",
+        ]}
+        bullets={[
+          "Energy costs are the main driver behind more informed glazing decisions",
+          "Homeowners increasingly ask for spec sheets rather than accepting a generic quote",
+          "A twenty-year installation is worth the extra week of research upfront",
+        ]}
+      />
+      </div>
+
+      {/* ── USP STRIP — desktop: grid | mobile: marquee ticker ───────────── */}
+      <section className="bg-[#007969] overflow-hidden order-[30]">
+        {/* Desktop */}
+        <div className="hidden md:block max-w-screen-xl mx-auto px-5 md:px-8 py-5">
+          <div className="grid grid-cols-4 gap-3">
+            {usps.map((u, i) => (
+              <div key={i} className="flex items-center gap-2 text-white">
+                <span className="text-lg flex-shrink-0">{u.icon}</span>
+                <span className="font-accent text-[0.7rem] tracking-[0.08em] uppercase font-semibold text-white/90 leading-tight">
+                  {u.text}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Mobile: auto-scrolling marquee */}
+        <div className="md:hidden py-4 overflow-hidden">
+          <div className="flex usp-marquee">
+            {[...usps, ...usps].map((u, i) => (
+              <div key={i} className="flex items-center gap-2 text-white flex-shrink-0 px-6">
+                <span className="text-base flex-shrink-0">{u.icon}</span>
+                <span className="font-accent text-[0.65rem] tracking-[0.08em] uppercase font-semibold text-white/90 leading-tight whitespace-nowrap">
+                  {u.text}
+                </span>
+                <span className="ml-4 text-white/30">·</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── SWIFTROOMS SOLUTION ───────────────────────────────────────────── */}
+      <section className="py-16 md:py-24 lg:py-32 bg-white order-[40]">
+        <div className="max-w-screen-xl mx-auto px-5 md:px-8">
+          <ScrollReveal>
+            <div className="text-center mb-10 md:mb-14">
+              <div className="flex justify-center mb-5">
+                <div className="divider-brand" />
+              </div>
+              <p className="text-label text-[#007969] mb-3">{settings.sections.solutionEyebrow}</p>
+              <h2 className="text-headline text-[#1c1c1e]">{settings.sections.solutionHeading}</h2>
+            </div>
+          </ScrollReveal>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ScrollReveal direction="left">
+              <div className="bg-gray-50 border-2 border-gray-100 rounded-2xl p-6 md:p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                    <svg className="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </div>
+                  <p className="font-heading font-bold text-lg text-[#1c1c1e]">Common Frustrations</p>
+                </div>
+                <div className="space-y-3">
+                  {problems.map((p, i) => (
+                    <div key={i} className="flex items-start gap-3 p-3 rounded-xl hover:bg-red-50 transition-colors">
+                      <div className="w-6 h-6 mt-0.5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-3 h-3 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </div>
+                      <span className="text-[#3a3a3c] text-sm leading-relaxed">{p.problem}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </ScrollReveal>
+            <ScrollReveal direction="right">
+              <div className="bg-[#007969] rounded-2xl p-6 md:p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <p className="font-heading font-bold text-lg text-white">Swiftrooms Advantage</p>
+                </div>
+                <div className="space-y-3">
+                  {problems.map((p, i) => (
+                    <div key={i} className="flex items-start gap-3 p-3 rounded-xl hover:bg-white/10 transition-colors">
+                      <div className="w-6 h-6 mt-0.5 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <span className="text-white/90 text-sm leading-relaxed">{p.solution}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </ScrollReveal>
+          </div>
+        </div>
+      </section>
+
+      <div className="order-[50]">
+      <ContentSection
+        eyebrow="BEYOND THE FIX"
+        heading="Aluminium Doors And Windows Dubai – From Solving Problems To Designing Possibilities"
+        level={3}
+        paragraphs={[
+          "Fixing heat penetration and poor sealing is really just the starting point. Once a home's envelope actually performs the way it should, the more interesting conversation opens up, what could this space become if the wall between inside and outside wasn't really a wall anymore.",
+          "That's usually where garden rooms, full-width sliding walls, and reworked rear elevations enter the discussion.",
+        ]}
+        bullets={[
+          "Performance upgrades and design upgrades are often the same project",
+          "A well-sealed home makes larger glazed openings practical, not riskier",
+          "Rear elevation redesigns are commonly driven by a maintenance problem first",
+        ]}
+        tone="muted"
+      />
+      </div>
+
+      {/* ── TRANSFORM YOUR SPACE ──────────────────────────────────────────── */}
+      <section className="py-16 md:py-24 bg-white overflow-hidden order-[60]">
+        <div className="max-w-screen-xl mx-auto px-5 md:px-8">
+          <ScrollReveal>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 lg:gap-20 items-center">
+              <div>
+                <div className="divider-brand mb-6" />
+                <p className="text-label text-[#007969] mb-4">{settings.sections.transformEyebrow}</p>
+                <h3 className="text-headline text-[#1c1c1e] mb-6 whitespace-pre-line">
+                  {settings.sections.transformHeading}
+                </h3>
+                <p className="text-body-lg text-[#6b7280] mb-8">
+                  {settings.sections.transformBody}
+                </p>
+                <div className="space-y-4 mb-10">
+                  {transformFeatures.map((item, i) => (
+                    <div key={i} className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-[#f0fdf4] flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <div className="w-2 h-2 rounded-full bg-[#007969]" />
+                      </div>
+                      <div>
+                        <p className="font-heading font-semibold text-[#1c1c1e] text-sm mb-0.5">{item.title}</p>
+                        <p className="text-[#6b7280] text-sm">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Link href="/catalogue" className="btn-brand">
+                  Explore Products
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+              <div className="relative h-[300px] sm:h-[340px] md:h-[420px] lg:h-[560px]">
+                <div className="absolute top-0 right-0 w-[75%] h-[55%] overflow-hidden rounded-2xl shadow-2xl">
+                  <Image src="/brand/hero-villa-dubai.png" alt="Modern Dubai villa with bi-fold doors" fill className="object-cover" />
+                </div>
+                <div className="absolute bottom-0 left-0 w-[65%] h-[50%] overflow-hidden rounded-2xl shadow-2xl border-4 border-white">
+                  <Image src="/brand/product-bedroom-doors.png" alt="Bedroom with casement doors" fill className="object-cover" />
+                </div>
+                <div className="absolute top-[50%] left-[35%] w-16 h-16 bg-[#007969] rounded-2xl flex items-center justify-center shadow-xl z-10">
+                  <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
+
+      <div className="order-[70]">
+      <ContentSection
+        eyebrow="WORTH TRANSFORMING"
+        heading="What Makes a Space Worth Transforming"
+        level={3}
+        paragraphs={[
+          "Not every unused corner of a plot is worth glazing over, the ones that actually get used afterward tend to share a few things in common. Direct access from a main living area, some natural shade for at least part of the day, and a view worth looking at.",
+          "A garden room tacked onto a side wall nobody walks past usually ends up as expensive storage, not the living space it was meant to be.",
+        ]}
+        bullets={[
+          "Proximity to existing living areas is the strongest predictor of actual use",
+          "Shade orientation matters as much as glazing spec for year-round comfort",
+          "Worth walking the space at different times of day before committing to a design",
+        ]}
+      />
+      </div>
+
+      {/* ── PRODUCTS ──────────────────────────────────────────────────────── */}
+      <section className="py-16 md:py-24 bg-[#f8f9fa] order-[15] md:order-[80]">
+        <div className="max-w-screen-xl mx-auto px-5 md:px-8">
+          <ScrollReveal>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 md:mb-14">
+              <div>
+                <div className="divider-brand mb-5" />
+                <p className="text-label text-[#007969] mb-3">{settings.sections.productsEyebrow}</p>
+                <h4 className="text-headline text-[#1c1c1e] whitespace-pre-line">{settings.sections.productsHeading}</h4>
+              </div>
+              <Link href="/catalogue" className="btn-outline self-start md:self-auto">
+                View All Products →
+              </Link>
+            </div>
+          </ScrollReveal>
+
+          {/* ── Mobile: full-width snap carousel with peek ── */}
+          <div className="md:hidden">
+            <div
+              ref={productCarouselRef}
+              className="flex overflow-x-auto snap-x snap-proximity scrollbar-hide overscroll-x-contain -mx-5 px-5 gap-4 pb-2"
+              style={{ scrollPaddingLeft: "1.25rem" }}
+              onScroll={() => onScroll(productCarouselRef, setActiveProduct)}
+            >
+              {productCards.map((card, i) =>
+                card.isImage ? (
+                  <Link
+                    key={i}
+                    href={card.href}
+                    className="snap-start flex-shrink-0 w-[82vw] relative h-64 overflow-hidden rounded-2xl block active:scale-[0.98] transition-transform"
+                  >
+                    <Image
+                      src={card.image!}
+                      alt={altTextFor(card.image, card.title)}
+                      fill
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    <div className="absolute bottom-0 left-0 p-5">
+                      <p className="text-label text-[#00a389] mb-1">{card.label}</p>
+                      <p className="font-heading font-bold text-lg text-white mb-1">{card.title}</p>
+                      {card.sub && <p className="text-white/60 text-xs">{card.sub}</p>}
+                    </div>
+                  </Link>
+                ) : (
+                  <Link
+                    key={i}
+                    href={card.href}
+                    className="snap-start flex-shrink-0 w-[72vw] bg-white border border-gray-100 rounded-2xl p-5 block active:scale-[0.98] transition-transform"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-[#f0fdf4] flex items-center justify-center mb-4">
+                      <div className="w-3 h-3 rounded-full bg-[#007969]" />
+                    </div>
+                    <p className="text-label text-[#007969] mb-2">{card.label}</p>
+                    <p className="font-heading font-semibold text-[#1c1c1e] mb-2">{card.title}</p>
+                    <p className="text-[#6b7280] text-xs leading-relaxed">{card.sub}</p>
+                  </Link>
+                )
+              )}
+            </div>
+            <Dots
+              count={productCards.length}
+              active={activeProduct}
+              onDotClick={(i) => scrollTo(productCarouselRef, i)}
+            />
+          </div>
+
+          {/* ── Desktop: original grid ── */}
+          <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-5">
+            <ScrollReveal className="md:col-span-2 lg:col-span-2">
+              <Link href="/catalogue/aluminium-sliding-doors" className="group block relative h-72 overflow-hidden rounded-2xl card-hover">
+                <Image src="/images/products/aluminium-sliding-doors.png" alt="Aluminium sliding doors" fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                <div className="absolute bottom-0 left-0 p-4 sm:p-6">
+                  <p className="text-label text-[#00a389] mb-1">01</p>
+                  <p className="font-heading font-bold text-xl text-white mb-1">Aluminium Sliding Doors</p>
+                  <p className="text-white/60 text-sm">Lift-and-slide systems from Cortizo</p>
+                </div>
+              </Link>
+            </ScrollReveal>
+            {productCategories.slice(1, 5).map((cat, i) => (
+              <ScrollReveal key={cat.id} delay={(i + 1) * 0.07}>
+                <Link href={`/catalogue/${cat.slug}`} className="group block relative h-72 overflow-hidden rounded-2xl card-hover">
+                  {cat.image && (
+                    <Image src={cat.image} alt={altTextFor(cat.image, cat.name)} fill className="object-cover group-hover:scale-105 transition-transform duration-700" sizes="(max-width: 1024px) 50vw, 25vw" />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                  <div className="absolute bottom-0 left-0 p-4 sm:p-6">
+                    <p className="text-label text-[#00a389] mb-1">{String(i + 2).padStart(2, "0")}</p>
+                    <p className="font-heading font-bold text-lg text-white mb-1 group-hover:text-[#4dd9c0] transition-colors">{cat.name}</p>
+                    <p className="text-white/60 text-sm">{cat.tagline}</p>
+                  </div>
+                </Link>
+              </ScrollReveal>
+            ))}
+            <ScrollReveal className="md:col-span-2 lg:col-span-2">
+              <Link href="/catalogue/skylights" className="group block relative h-56 overflow-hidden rounded-2xl card-hover">
+                <Image src="/images/products/skylights.png" alt="Skylights and garden rooms" fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 p-4 sm:p-6">
+                  <p className="text-label text-[#00a389] mb-1">Skylights & Garden Rooms</p>
+                  <p className="font-heading font-bold text-lg text-white">Transform unused space into living space.</p>
+                </div>
+              </Link>
+            </ScrollReveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ── BRANDS ────────────────────────────────────────────────────────── */}
+      <section className="py-16 md:py-20 bg-white border-y border-gray-100 overflow-hidden order-[90]">
+        <div className="max-w-screen-xl mx-auto px-5 md:px-8">
+          <ScrollReveal>
+            <div className="text-center mb-8 md:mb-12">
+              <div className="flex justify-center mb-5"><div className="divider-brand" /></div>
+              <h4 className="text-label text-[#007969] mb-2">{settings.sections.brandsEyebrow}</h4>
+            </div>
+          </ScrollReveal>
+
+          {/* ── Mobile: 2-per-view snap carousel ── */}
+          <div className="md:hidden">
+            <div className="flex overflow-x-auto snap-x snap-proximity scrollbar-hide overscroll-x-contain -mx-5 px-5 gap-3 pb-2">
+              {brands.map((brand, i) => (
+                <Link
+                  key={brand.name}
+                  href="/catalogue/brands"
+                  className="snap-start flex-shrink-0 w-[44vw] border border-gray-100 rounded-2xl p-5 text-center active:scale-[0.97] transition-transform"
+                >
+                  <div className="h-10 flex items-center justify-center mx-auto mb-3">
+                    <BrandMark name={brand.name} />
+                  </div>
+                  <p className="font-heading font-bold text-[#1c1c1e] mb-1 text-sm">{brand.name}</p>
+                  <p className="text-[0.6rem] tracking-wide uppercase text-[#6b7280] mb-0.5">{brand.country}</p>
+                  <p className="text-[#9ca3af] text-[0.7rem] leading-tight">{brand.tagline}</p>
+                </Link>
+              ))}
+            </div>
+            <p className="text-center mt-4">
+              <Link href="/catalogue/brands" className="text-label text-[#007969] hover:underline">
+                View all brand partners →
+              </Link>
+            </p>
+          </div>
+
+          {/* ── Desktop: original grid ── */}
+          <div className="hidden md:grid grid-cols-3 lg:grid-cols-5 gap-4">
+            {brands.map((brand, i) => (
+              <ScrollReveal key={brand.name} delay={i * 0.08}>
+                <Link href="/catalogue/brands" className="group block border border-gray-100 rounded-2xl p-6 hover:border-[#007969]/30 hover:shadow-md transition-all text-center">
+                  <div className="h-10 flex items-center justify-center mx-auto mb-3 opacity-85 group-hover:opacity-100 transition-opacity">
+                    <BrandMark name={brand.name} />
+                  </div>
+                  <p className="font-heading font-bold text-[#1c1c1e] group-hover:text-[#007969] transition-colors mb-1">{brand.name}</p>
+                  <p className="text-[0.65rem] tracking-wide uppercase text-[#6b7280] mb-0.5">{brand.country}</p>
+                  <p className="text-[#9ca3af] text-xs">{brand.tagline}</p>
+                </Link>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="order-[100]">
+      <ContentSection
+        eyebrow="CHOOSING A SYSTEM"
+        heading="How to Actually Think About the Right System"
+        level={4}
+        paragraphs={[
+          "Six product categories can feel like six decisions, but most projects really come down to one question first: what does this specific opening need to do. A wall that needs to fully disappear points toward bi-fold. A wide view that should stay mostly fixed points toward sliding.",
+          "Ventilation-first rooms usually point toward standard casement or uPVC. Whichever category it lands on, the goal for any aluminium doors and windows in Dubai project is the same: match the system to the room, not the other way around.",
+        ]}
+        bullets={[
+          "Start from what the opening needs to do, not the product name",
+          "Most villas end up mixing two or three systems across different rooms",
+          "The right system is usually obvious once the room's purpose is clear",
+        ]}
+        tone="muted"
+      />
+      </div>
+
+      {/* ── GUIDED SELECTOR ───────────────────────────────────────────────── */}
+      <section className="py-16 md:py-24 order-[110]">
+        <div className="max-w-screen-xl mx-auto px-5 md:px-8">
+          <ScrollReveal>
+            <ProductSelector categories={productCategories} />
+          </ScrollReveal>
+        </div>
+      </section>
+
+      <div className="order-[120]">
+      <ContentSection
+        eyebrow="PROVEN IN THE FIELD"
+        heading="Real Projects, Real Conditions"
+        level={4}
+        paragraphs={[
+          "A spec sheet says one thing; a system that's been through three UAE summers says another. The projects below aren't showroom demonstrations, they're villas and commercial sites where aluminium doors and windows in Dubai have already dealt with sandstorms, extreme heat, and daily use for years, not weeks.",
+          "That track record matters more than any published performance number when deciding who to trust with your own project.",
+        ]}
+        bullets={[
+          "Installed performance over years tells you more than a lab-rated figure",
+          "Long-term client feedback surfaces issues a spec sheet never would",
+          "Look for projects similar in scale and exposure to your own",
+        ]}
+      />
+      </div>
+
+      {/* ── PORTFOLIO ─────────────────────────────────────────────────────── */}
+      <section className="py-16 md:py-24 bg-[#f8f9fa] order-[130]">
+        <div className="max-w-screen-xl mx-auto px-5 md:px-8">
+          <ScrollReveal>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 md:mb-14">
+              <div>
+                <div className="divider-brand mb-5" />
+                <p className="text-label text-[#007969] mb-3">{settings.sections.portfolioEyebrow}</p>
+                <h5 className="text-headline text-[#1c1c1e] whitespace-pre-line">{settings.sections.portfolioHeading}</h5>
+              </div>
+              <Link href="/portfolio" className="btn-outline self-start md:self-auto">All Projects →</Link>
+            </div>
+          </ScrollReveal>
+
+          {/* ── Mobile: cinematic full-width snap carousel with counter ── */}
+          <div className="md:hidden">
+            <div
+              ref={portfolioCarouselRef}
+              className="flex overflow-x-auto snap-x snap-proximity scrollbar-hide overscroll-x-contain -mx-5 px-5 gap-4 pb-2"
+              style={{ scrollPaddingLeft: "1.25rem" }}
+              onScroll={() => onScroll(portfolioCarouselRef, setActivePortfolio)}
+            >
+              {portfolioCards.map((card, i) => (
+                <Link
+                  key={i}
+                  href={card.href}
+                  className="snap-start flex-shrink-0 w-[82vw] relative h-72 overflow-hidden rounded-2xl block active:scale-[0.98] transition-transform"
+                >
+                  {card.image ? (
+                    <Image src={card.image} alt={card.title} fill className="object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-[#f0fdf4]" />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  <div className="absolute top-3 left-3">
+                    <span className="text-[0.55rem] tracking-widest uppercase text-white bg-black/40 px-2 py-1">
+                      {card.badge}
+                    </span>
+                  </div>
+                  {/* Counter */}
+                  <div className="absolute top-3 right-3 font-accent font-bold text-white/60 text-xs">
+                    {String(i + 1).padStart(2, "0")} / {String(portfolioCards.length).padStart(2, "0")}
+                  </div>
+                  <div className="absolute bottom-0 left-0 p-5">
+                    <p className="font-heading font-bold text-lg text-white mb-1">{card.title}</p>
+                    <p className="text-white/60 text-xs">{card.sub}</p>
+                    <div className="mt-3 flex items-center gap-1 text-[0.65rem] uppercase tracking-widest text-[#4dd9c0] font-semibold">
+                      View Case Study
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <Dots
+              count={portfolioCards.length}
+              active={activePortfolio}
+              onDotClick={(i) => scrollTo(portfolioCarouselRef, i)}
+            />
+          </div>
+
+          {/* ── Desktop: original grid ── */}
+          <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-5">
+            <ScrollReveal className="col-span-2">
+              <Link href="/portfolio/4900-gallery" className="group block relative h-72 overflow-hidden rounded-2xl">
+                <Image src="/brand/project-skylight-restaurant.jpg" alt="Glass skylight restaurant project" fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 p-6">
+                  <span className="usp-badge bg-black/40 border-white/20 text-white text-[0.6rem] mb-3 inline-flex">Commercial · Skylight</span>
+                  <p className="font-heading font-bold text-xl text-white">4900 Gallery — Dubai</p>
+                  <p className="text-white/60 text-sm mt-1">Large format glass skylight system</p>
+                </div>
+              </Link>
+            </ScrollReveal>
+            {portfolioProjects.slice(0, 4).map((project, i) => (
+              <ScrollReveal key={project.id} delay={i * 0.07}>
+                <Link href={`/portfolio/${project.slug}`} className="group block bg-white border border-gray-100 rounded-2xl overflow-hidden card-hover">
+                  <div className="h-40 relative overflow-hidden bg-[#f0fdf4]">
+                    {project.image && <Image src={project.image} alt={project.name} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                    <div className="absolute top-3 left-3">
+                      <span className="text-[0.55rem] tracking-widest uppercase text-white bg-black/40 backdrop-blur-sm px-2 py-0.5">{project.type}</span>
+                    </div>
+                  </div>
+                  <div className="p-5">
+                    <div className="flex items-start justify-between mb-1">
+                      <p className="font-heading font-semibold text-[#1c1c1e] text-sm group-hover:text-[#007969] transition-colors">{project.name}</p>
+                      <span className="text-[#9ca3af] text-xs ml-3 flex-shrink-0">{project.year}</span>
+                    </div>
+                    <p className="text-[#6b7280] text-xs">{project.location}</p>
+                  </div>
+                </Link>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="order-[140]">
+      <ContentSection
+        eyebrow="BEHIND THE PHOTOS"
+        heading="What the Portfolio Doesn't Show"
+        level={5}
+        paragraphs={[
+          "Photos of a finished installation don't show the site visit where a drainage issue got caught before fabrication, or the redesign after a structural engineer flagged a lintel that wouldn't carry the glass load.",
+          "Every project in the portfolio had some version of that conversation happen first. It's the part that doesn't photograph well but is usually the reason the finished result works the way it does.",
+        ]}
+        bullets={[
+          "The planning stage catches most of the problems that would otherwise surface later",
+          "Structural and drainage checks happen before a single frame is ordered",
+          "A smooth-looking installation usually means the hard part happened earlier, unseen",
+        ]}
+        tone="muted"
+      />
+      </div>
+
+      {/* ── PROCESS ───────────────────────────────────────────────────────── */}
+      <section className="py-16 md:py-20 bg-white border-y border-gray-100 order-[150]">
+        <div className="max-w-screen-xl mx-auto px-5 md:px-8">
+          <ScrollReveal>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 md:mb-12">
+              <div>
+                <div className="divider-brand mb-5" />
+                <p className="text-label text-[#007969] mb-3">{settings.sections.processEyebrow}</p>
+                <h5 className="text-title text-[#1c1c1e] whitespace-pre-line">{settings.sections.processHeading}</h5>
+              </div>
+              <Link href="/technical/process" className="text-label text-[#007969] hover:underline self-start">
+                Full process detail →
+              </Link>
+            </div>
+          </ScrollReveal>
+
+          {/* ── Mobile: numbered step carousel with connector lines ── */}
+          <div className="md:hidden">
+            <div
+              ref={processCarouselRef}
+              className="flex overflow-x-auto snap-x snap-proximity scrollbar-hide overscroll-x-contain -mx-5 px-5 gap-0 pb-2"
+              style={{ scrollPaddingLeft: "1.25rem" }}
+              onScroll={() => onScroll(processCarouselRef, setActiveProcess)}
+            >
+              {processSteps.map((step, i) => (
+                <div
+                  key={step.number}
+                  className="snap-start flex-shrink-0 w-[72vw] pr-4"
+                >
+                  <div className="relative">
+                    {/* Connector to next step */}
+                    {i < processSteps.length - 1 && (
+                      <div className="absolute top-5 left-10 right-0 h-px bg-[#007969]/15" />
+                    )}
+                    <div className="w-10 h-10 rounded-xl bg-[#f0fdf4] border border-[#007969]/20 flex items-center justify-center mb-4 relative z-10">
+                      <span className="font-accent font-bold text-[#007969] text-sm">{step.number}</span>
+                    </div>
+                    <p className="font-heading font-semibold text-[#1c1c1e] text-sm mb-2">{step.title}</p>
+                    <p className="text-[#6b7280] text-xs leading-relaxed">{step.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Step counter */}
+            <div className="flex items-center justify-center gap-3 mt-4">
+              <span className="text-[0.65rem] tracking-widest uppercase text-[#6b7280]">
+                Step {activeProcess + 1} of {processSteps.length}
+              </span>
+              <div className="flex gap-0.5">
+                {processSteps.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => scrollTo(processCarouselRef, i)}
+                    aria-label={`Go to step ${i + 1}`}
+                    className="min-w-11 min-h-11 flex items-center justify-center"
+                  >
+                    <span
+                      className={`block rounded-full transition-all duration-300 ${
+                        activeProcess === i ? "w-4 h-1.5 bg-[#007969]" : "w-1.5 h-1.5 bg-gray-200"
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Desktop: original grid ── */}
+          <div className="hidden md:grid grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+            {processSteps.map((step, i) => (
+              <ScrollReveal key={step.number} delay={i * 0.07}>
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-xl bg-[#f0fdf4] border border-[#007969]/20 flex items-center justify-center mb-4">
+                    <span className="font-accent font-bold text-[#007969] text-sm">{step.number}</span>
+                  </div>
+                  <p className="font-heading font-semibold text-[#1c1c1e] text-sm mb-2">{step.title}</p>
+                  <p className="text-[#6b7280] text-xs leading-relaxed">{step.description}</p>
+                  {i < processSteps.length - 1 && (
+                    <div className="hidden lg:block absolute top-5 left-full w-4 h-px bg-[#007969]/20" />
+                  )}
+                </div>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="order-[160]">
+      <ContentSection
+        eyebrow="THE LEAD TIME"
+        heading="What Happens Between Contract and Installation"
+        level={5}
+        paragraphs={[
+          "There's a gap most people don't think about between signing off on drawings and the installation crew arriving, that's when fabrication actually happens, and it's not instant.",
+          "Custom sizing, powder coating, and glass processing all run on their own lead times, and a rushed fabrication schedule is where quality shortcuts tend to creep in. A realistic timeline here is usually a sign of a supplier doing it properly, not slowly.",
+        ]}
+        bullets={[
+          "Fabrication lead times vary by system complexity and current order volume",
+          "Custom sizing and finish colour both affect how long manufacturing takes",
+          "An unrealistically fast quoted timeline is worth questioning, not celebrating",
+        ]}
+      />
+      </div>
+
+      <div className="order-[170]">
+      <ContentSection
+        eyebrow="BEYOND THE WARRANTY"
+        heading="What Happens After Year One"
+        level={5}
+        paragraphs={[
+          "Most of the attention in a glazing project goes into the install day, but the years after matter just as much.",
+          "Track debris, gasket wear, and hardware adjustment are all normal, the difference is whether there's a real aftercare relationship in place when something needs attention, or whether the installer disappeared the moment the final invoice was paid.",
+        ]}
+        bullets={[
+          "Annual servicing prevents most of the issues that show up later",
+          "A responsive aftercare relationship matters more once the warranty period is underway",
+          "Ask what happens after year one before signing, not after something breaks",
+        ]}
+        tone="muted"
+      />
+      </div>
+
+      <div className="order-[180]">
+      <ContentSection
+        eyebrow="ASK FOR THE NUMBERS"
+        heading="Why Vague Spec Sheets Are Worth Questioning"
+        level={6}
+        paragraphs={[
+          'A lot of glazing quotes describe performance in general terms, "high performance," "energy efficient", without the actual chamber count, U-value, or air permeability class behind the claim. That\'s usually not an accident; vague language makes it harder to compare one quote against another line by line.',
+          "Whether you're comparing uPVC or aluminium doors and windows in Dubai, asking for the specific published figures, and checking they match the product's technical data sheet, is a reasonable thing to expect before signing anything.",
+        ]}
+        bullets={[
+          "Vague performance language is a common way lower-quality quotes hide gaps",
+          "Specific figures (chamber count, U-value, air permeability class) can be checked independently",
+          "A supplier willing to hand over the technical data sheet is worth taking seriously",
+        ]}
+      />
+      </div>
+
+      {/* ── BLOG PREVIEW ──────────────────────────────────────────────────── */}
+      <section className="py-16 md:py-24 bg-white border-t border-gray-100 order-[190]">
+        <div className="max-w-screen-xl mx-auto px-5 md:px-8 lg:px-10">
+          <ScrollReveal>
+            <div className="flex items-end justify-between mb-10 md:mb-14">
+              <div>
+                <p className="text-label text-[#007969] mb-3">{settings.sections.blogEyebrow}</p>
+                <p className="text-title text-[#1c1c1e]">{settings.sections.blogHeading}</p>
+              </div>
+              <Link
+                href="/technical/blog"
+                className="hidden sm:flex items-center gap-2 text-[0.7rem] tracking-widest uppercase text-[#6b7280] hover:text-[#007969] transition-colors"
+              >
+                All articles
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+          </ScrollReveal>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-gray-100">
+            {sortedBlogPosts.slice(0, 3).map((post, i) => (
+              <ScrollReveal key={post.slug} delay={i * 0.08}>
+                <Link
+                  href={`/technical/blog/${post.slug}`}
+                  className="group block bg-white hover:bg-[#f8f9fa] transition-colors h-full"
+                >
+                  <div className="h-44 relative overflow-hidden">
+                    <Image
+                      src={post.image}
+                      alt={post.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-700"
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                    />
+                  </div>
+                  <div className="p-6 md:p-8">
+                    <span className="text-[0.6rem] tracking-widest uppercase text-[#007969] mb-3 block">
+                      {post.category}
+                    </span>
+                    <p className="text-[#1c1c1e] font-semibold leading-snug group-hover:text-[#007969] transition-colors mb-3">
+                      {post.title}
+                    </p>
+                    <p className="text-[#6b7280] text-sm leading-relaxed line-clamp-2">{post.excerpt}</p>
+                    <p className="text-gray-400 text-xs mt-4">{post.date} · {post.readTime}</p>
+                  </div>
+                </Link>
+              </ScrollReveal>
+            ))}
+          </div>
+          <ScrollReveal>
+            <div className="mt-8 sm:hidden text-center">
+              <Link
+                href="/technical/blog"
+                className="inline-flex items-center gap-2 text-[0.7rem] tracking-widest uppercase text-[#007969]"
+              >
+                All articles →
+              </Link>
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
+
+      <div className="order-[200]">
+      <ContentSection
+        eyebrow="BEYOND THE SPEC SHEET"
+        heading="What a Showroom Visit Actually Tells You"
+        level={6}
+        paragraphs={[
+          "A product page can list the sightline width, but it can't tell you how that width actually looks from where you'd be standing in your own living room.",
+          "Sliding a full-size door open, hearing how quietly a multi-point lock engages, feeling the weight difference between a standard and slim profile, that's the kind of thing that only really lands in person, and it's often what settles a decision a spec sheet alone couldn't.",
+        ]}
+        bullets={[
+          "Sightline and frame proportions read differently in person than in a photo",
+          "Testing lock and handle action reveals build quality a spec sheet won't show",
+          "Comparing two systems side by side is far easier than switching browser tabs",
+        ]}
+        tone="muted"
+      />
+      </div>
+
+      {/* ── TESTIMONIALS ──────────────────────────────────────────────────── */}
+      <section className="py-16 md:py-24 bg-[#f8f9fa] border-t border-gray-100 order-[210]">
+        <div className="max-w-screen-xl mx-auto px-5 md:px-8 lg:px-10">
+          <ScrollReveal>
+            <div className="flex items-end justify-between mb-10 md:mb-14">
+              <div>
+                <p className="text-label text-[#007969] mb-3">{settings.sections.testimonialsEyebrow}</p>
+                <p className="text-title text-[#1c1c1e]">{settings.sections.testimonialsHeading}</p>
+              </div>
+              <Link
+                href="/portfolio"
+                className="hidden sm:flex items-center gap-2 text-[0.7rem] tracking-widest uppercase text-[#6b7280] hover:text-[#007969] transition-colors"
+              >
+                View portfolio
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+          </ScrollReveal>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-gray-200">
+            {testimonials.map((t, i) => (
+              <ScrollReveal key={i} delay={i * 0.07}>
+                <div className="bg-white p-6 md:p-8 flex flex-col h-full">
+                  <svg className="w-6 h-6 text-[#007969]/30 mb-4 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                  </svg>
+                  <p className="text-[#3a3a3c] leading-relaxed text-sm flex-1 italic mb-6">
+                    &ldquo;{t.quote}&rdquo;
+                  </p>
+                  <div className="border-t border-gray-100 pt-4">
+                    <p className="text-[#1c1c1e] font-semibold text-sm">{t.author}</p>
+                    <p className="text-[#6b7280] text-xs mt-0.5">{t.location}</p>
+                    <span className="inline-block mt-2 text-[0.55rem] tracking-widest uppercase text-[#007969] border border-[#007969]/20 px-2 py-0.5">
+                      {t.product}
+                    </span>
+                  </div>
+                </div>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FINAL CTA ─────────────────────────────────────────────────────── */}
+      <section className="py-20 bg-[#030213] relative overflow-hidden order-[220]">
+        <div className="absolute inset-0 opacity-5">
+          <Image src="/brand/hero-villa-dubai.png" alt="" fill className="object-cover" />
+        </div>
+        <ScrollReveal>
+          <div className="relative z-10 max-w-screen-xl mx-auto px-5 md:px-8 text-center">
+            <div className="flex justify-center mb-6">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/logo.svg" alt="Swiftrooms LOGO for Aluminium Doors and Windows Dubai" width={196} height={40} className="h-10 w-auto opacity-80" style={{ filter: "brightness(0) invert(1)" }} />
+            </div>
+            <p className="text-headline text-white mb-5 max-w-2xl mx-auto">{settings.cta.heading}</p>
+            <p className="text-white/50 text-body-lg max-w-lg mx-auto mb-10">
+              {settings.cta.body}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <QuoteButton className="btn-brand">{settings.cta.primaryLabel}</QuoteButton>
+              <ShowroomButton className="btn-outline border-white/30 text-white hover:bg-white hover:text-[#007969]">
+                {settings.cta.secondaryLabel}
+              </ShowroomButton>
+            </div>
+          </div>
+        </ScrollReveal>
+      </section>
+    </div>
+  );
+}

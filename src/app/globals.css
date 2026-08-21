@@ -1,0 +1,363 @@
+@import url("https://fonts.googleapis.com/css2?family=Exo:wght@400;500;600;700;800&family=Barlow:wght@400;500;600&family=Rajdhani:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --brand: #007969;
+    --brand-dark: #005a50;
+    --brand-mid: #006156;
+    --brand-light: #f0fdf4;
+    --brand-tint: #e6f4f1;
+    --black: #1c1c1e;
+    --dark: #3a3a3c;
+    --mid: #6b7280;
+    --light: #e5e7eb;
+    --bg: #ffffff;
+    --bg-alt: #f8f9fa;
+    --bg-dark: #030213;
+  }
+
+  html {
+    background-color: var(--bg);
+    color: var(--black);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: "Barlow", sans-serif;
+    overflow-x: hidden;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  ::selection {
+    background: var(--brand);
+    color: #fff;
+  }
+
+  /* Visible keyboard focus ring for all interactive elements (WCAG 2.4.7).
+     Mouse/touch clicks don't trigger :focus-visible, so this is keyboard-only. */
+  :focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Prevent iOS Safari auto-zoom on focus — form controls must be >=16px. */
+  @media (max-width: 767px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px;
+    }
+  }
+}
+
+@theme inline {
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+  --color-brand-light: var(--brand-light);
+  --color-dark: var(--dark);
+  --color-mid: var(--mid);
+  --color-bg-alt: var(--bg-alt);
+  --color-bg-dark: var(--bg-dark);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: var(--bg-alt); }
+::-webkit-scrollbar-thumb { background: var(--brand); }
+
+/* Typography */
+.font-heading {
+  font-family: "Exo", sans-serif;
+}
+.font-accent {
+  font-family: "Rajdhani", sans-serif;
+}
+
+.text-display {
+  font-family: "Exo", sans-serif;
+  font-size: clamp(3rem, 7vw, 7rem);
+  font-size: clamp(3rem, min(7vw, 9svh), 7rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+
+.text-headline {
+  font-family: "Exo", sans-serif;
+  font-size: clamp(2rem, 5vw, 4.5rem);
+  font-size: clamp(2rem, min(5vw, 7svh), 4.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  font-weight: 700;
+}
+
+.text-title {
+  font-family: "Exo", sans-serif;
+  font-size: clamp(1.5rem, 3vw, 2.75rem);
+  font-size: clamp(1.5rem, min(3vw, 5svh), 2.75rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+/* Hero section height: floor of 600px everywhere; on browsers that support
+   svh, allowed to grow taller than one screen so tall content never overlaps
+   the fixed header. Two declarations so unsupported browsers keep the floor
+   instead of losing min-height entirely. */
+.hero-min-h {
+  min-height: 600px;
+  min-height: max(600px, 100svh);
+}
+
+.text-label {
+  font-family: "Rajdhani", sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.text-body-lg {
+  font-family: "Barlow", sans-serif;
+  font-size: clamp(1rem, 1.2vw, 1.125rem);
+  line-height: 1.7;
+  font-weight: 400;
+}
+
+/* Brand button */
+.btn-brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--brand);
+  color: #fff;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.875rem 2rem;
+  transition: background 0.25s ease, transform 0.2s ease;
+}
+.btn-brand:hover {
+  background: var(--brand-dark);
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: var(--brand);
+  border: 1.5px solid var(--brand);
+  font-family: "Rajdhani", sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.875rem 2rem;
+  transition: all 0.25s ease;
+}
+.btn-outline:hover {
+  background: var(--brand);
+  color: #fff;
+}
+
+/* Section divider */
+.divider-brand {
+  height: 3px;
+  width: 40px;
+  background: var(--brand);
+  border-radius: 2px;
+}
+
+/* Card hover */
+.card-hover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(0,121,105,0.12);
+}
+
+/* Link underline */
+.link-brand {
+  position: relative;
+  color: var(--brand);
+}
+.link-brand::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 0;
+  height: 1px;
+  background: var(--brand);
+  transition: width 0.3s ease;
+}
+.link-brand:hover::after { width: 100%; }
+
+/* USP badge */
+.usp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0,121,105,0.08);
+  border: 1px solid rgba(0,121,105,0.2);
+  color: var(--brand);
+  font-family: "Rajdhani", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.375rem 0.875rem;
+  border-radius: 2px;
+}
+
+/* Hide scrollbar for filter tag rows */
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* Noise/grain texture */
+.bg-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+/* ── USP MARQUEE TICKER ───────────────────────────────────────────────── */
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.usp-marquee {
+  animation: marquee 18s linear infinite;
+  will-change: transform;
+}
+
+@media (pointer: coarse) {
+  .usp-marquee {
+    will-change: auto;
+  }
+}
+
+/* ── MOBILE NAVIGATION ITEMS ──────────────────────────────────────────── */
+.mobile-nav-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  font-family: "Exo", sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: #1c1c1e;
+  border-bottom: 1px solid #f3f4f6;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: color 0.2s ease, background 0.2s ease;
+  min-height: 56px;
+}
+.mobile-nav-item:hover, .mobile-nav-item:active {
+  color: #007969;
+  background: #f0fdf4;
+}
+
+.mobile-sub-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.8125rem 1.5rem;
+  font-family: "Barlow", sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #3a3a3c;
+  border-bottom: 1px solid #f3f4f6;
+  transition: color 0.2s ease, background 0.2s ease;
+  min-height: 48px;
+}
+.mobile-sub-item:hover, .mobile-sub-item:active {
+  color: #007969;
+  background: #f0fdf4;
+}
+
+.mobile-deep-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.6875rem 2rem;
+  font-family: "Barlow", sans-serif;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #6b7280;
+  border-bottom: 1px solid #f9fafb;
+  transition: color 0.2s ease;
+  min-height: 44px;
+}
+.mobile-deep-item:hover, .mobile-deep-item:active {
+  color: #007969;
+}
+
+/* Safe area for notched phones */
+.safe-bottom {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+/* Touch-friendly tap targets */
+@media (max-width: 1023px) {
+  .card-hover:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  .card-hover:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Swipeable horizontal scroll */
+.swipe-scroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 1rem;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.swipe-scroll::-webkit-scrollbar { display: none; }
+.swipe-scroll > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* Prevent horizontal overflow */
+@media (max-width: 767px) {
+  .text-display {
+    font-size: clamp(2.75rem, 12vw, 5rem);
+    font-size: clamp(2.75rem, min(12vw, 9svh), 5rem);
+    line-height: 0.96;
+  }
+  .text-headline {
+    font-size: clamp(1.75rem, 7vw, 3rem);
+    font-size: clamp(1.75rem, min(7vw, 7svh), 3rem);
+    line-height: 1.08;
+  }
+  .text-title {
+    font-size: clamp(1.375rem, 5.5vw, 2rem);
+    font-size: clamp(1.375rem, min(5.5vw, 5svh), 2rem);
+    line-height: 1.15;
+  }
+}
+
+/* Tablet-specific overrides (768–1023) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .text-display {
+    font-size: clamp(3.5rem, 9vw, 6.5rem);
+    font-size: clamp(3.5rem, min(9vw, 9svh), 6.5rem);
+  }
+}
