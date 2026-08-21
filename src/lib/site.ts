@@ -3,4 +3,4 @@
 // Vercel production deployment. NEXT_PUBLIC_ vars are inlined at build time, so
 // this resolves the same on the server and in the browser.
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") ?? "https://swiftrooms-newbuild.vercel.app";
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") || "https://swiftrooms-newbuild.vercel.app";
