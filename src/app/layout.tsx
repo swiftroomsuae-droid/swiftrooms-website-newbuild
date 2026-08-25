@@ -50,6 +50,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
+    site: "@SWIFTROOMS",
+    creator: "@SWIFTROOMS",
     title: "Swiftrooms — Performance Windows & Doors, UAE",
     description:
       "Premium aluminium windows, doors, curtain wall and glazing systems for UAE residential and commercial projects.",
@@ -58,62 +60,6 @@ export const metadata: Metadata = {
 };
 
 const BASE = SITE_URL;
-
-const buildLocalBusinessSchema = (contact: { phoneRaw: string; email: string }) => ({
-  "@context": "https://schema.org",
-  "@type": "LocalBusiness",
-  "@id": `${BASE}/#business`,
-  name: "Swiftrooms",
-  description:
-    "Premium aluminium windows, doors, curtain wall and glazing systems for UAE residential and commercial projects. Authorised Cortizo, Vetromax, Vetro and Gulf Extrusions partners.",
-  url: BASE,
-  telephone: contact.phoneRaw,
-  email: contact.email,
-  logo: `${BASE}/brand/logo-color.png`,
-  image: `${BASE}/brand/hero-villa-dubai.png`,
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: "Jebel Ali Industrial Area 1",
-    addressLocality: "Dubai",
-    addressRegion: "Dubai",
-    addressCountry: "AE",
-  },
-  geo: {
-    "@type": "GeoCoordinates",
-    latitude: 24.9942,
-    longitude: 55.0614,
-  },
-  openingHoursSpecification: [
-    {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"],
-      opens: "08:30",
-      closes: "17:30",
-    },
-    {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Saturday"],
-      opens: "10:00",
-      closes: "14:00",
-    },
-  ],
-  contactPoint: {
-    "@type": "ContactPoint",
-    telephone: contact.phoneRaw,
-    contactType: "sales",
-    areaServed: "AE",
-    availableLanguage: ["English", "Arabic"],
-  },
-  priceRange: "AED 800 – AED 5,000+ per sqm",
-  areaServed: [
-    { "@type": "City", name: "Dubai" },
-    { "@type": "City", name: "Abu Dhabi" },
-    { "@type": "City", name: "Sharjah" },
-    { "@type": "City", name: "Ras Al Khaimah" },
-    { "@type": "AdministrativeArea", name: "United Arab Emirates" },
-  ],
-  sameAs: [],
-});
 
 const webSiteSchema = {
   "@context": "https://schema.org",
@@ -137,12 +83,29 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <link rel="preconnect" href="https://www.youtube.com" />
         <link rel="dns-prefetch" href="https://www.youtube.com" />
+        {/* Google Tag Manager */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-TD4BV3QB');`,
+          }}
+        />
+        {/* End Google Tag Manager */}
       </head>
       <body className="bg-white text-[#1c1c1e] antialiased">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(buildLocalBusinessSchema(settings.contact)) }}
-        />
+        {/* Google Tag Manager (noscript) */}
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-TD4BV3QB"
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
+        {/* End Google Tag Manager (noscript) */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}

@@ -131,7 +131,6 @@ const DEFAULTS: SiteSettings = {
     catalogueBlurb: "Premium aluminium, uPVC and glazing systems from Europe's leading manufacturers.",
     catalogue: [
       { label: "All Products", href: "/catalogue" },
-      { label: "Brands", href: "/catalogue/brands" },
       { label: "Aluminium Sliding Doors", href: "/catalogue/aluminium-sliding-doors" },
       { label: "Aluminium Bi-folding Doors", href: "/catalogue/aluminium-bi-folding-doors" },
       { label: "Aluminium Windows", href: "/catalogue/aluminium-windows" },
@@ -143,7 +142,6 @@ const DEFAULTS: SiteSettings = {
       { label: "Skylights & Rooflights", href: "/catalogue/skylights" },
       { label: "Insect Screens", href: "/catalogue/insect-screens" },
       { label: "Gallery", href: "/catalogue/gallery" },
-      { label: "Promotions", href: "/catalogue/promotions" },
     ],
     technicalBlurb: "Resources, guides and expertise from first enquiry to aftercare.",
     technical: [
@@ -153,11 +151,12 @@ const DEFAULTS: SiteSettings = {
       { label: "FAQ", href: "/technical/faq" },
     ],
     mobile: [
-      { label: "Home", href: "/" },
       { label: "About Us", href: "/about" },
-      { label: "Catalogue", href: "/catalogue" },
+      { label: "Product Range", href: "/catalogue" },
       { label: "Portfolio", href: "/portfolio" },
       { label: "Technical", href: "/technical" },
+      { label: "Promotions", href: "/catalogue/promotions" },
+      { label: "Shop By Brand", href: "/brands" },
     ],
   },
   cta: {

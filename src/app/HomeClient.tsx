@@ -108,8 +108,16 @@ export default function HomeClient({
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
   const [isTouch, setIsTouch] = useState(false);
+  // Starts false (not "unknown-yet-true") so the YouTube iframe is absent from
+  // the server-rendered HTML for every device — mobile browsers were fetching
+  // and buffering the autoplay embed on first paint before this effect ever got
+  // a chance to gate it off, tanking mobile LCP. Only flips on once confirmed
+  // non-touch, so touch devices never mount the iframe at all.
+  const [showVideo, setShowVideo] = useState(false);
   useEffect(() => {
-    setIsTouch(window.matchMedia("(pointer: coarse)").matches);
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    setIsTouch(coarse);
+    if (!coarse) setShowVideo(true);
   }, []);
 
   // Measured (not CSS-unit-guessed) safety net: shrink the hero heading directly
@@ -241,7 +249,7 @@ export default function HomeClient({
           />
         </div>
         {/* Video overlay — desktop only, loads after poster */}
-        {!isTouch && (
+        {showVideo && (
           <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ transform: "translateZ(0)" }}>
             <div
               className="absolute top-1/2 left-1/2"
@@ -1098,6 +1106,20 @@ export default function HomeClient({
                 </svg>
               </Link>
             </div>
+          </ScrollReveal>
+          <ScrollReveal delay={0.05}>
+            <a
+              href="https://www.google.com/maps/search/?api=1&query=Swift+Rooms+LLC"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 mb-10 md:mb-14 text-sm text-[#3a3a3c] hover:text-[#007969] transition-colors"
+            >
+              <span className="flex text-[#f5b400]" aria-hidden="true">
+                {"★★★★★"}
+              </span>
+              <span className="font-semibold">4.9</span>
+              <span className="text-[#6b7280]">Read our Google reviews →</span>
+            </a>
           </ScrollReveal>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-gray-200">
             {testimonials.map((t, i) => (

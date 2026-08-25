@@ -6,6 +6,8 @@ import { getCategories } from "@/lib/catalogue";
 import { getPortfolioProjects } from "@/lib/portfolio";
 import { getArticles } from "@/lib/blog";
 import { getProcessSteps, getTestimonials } from "@/lib/about";
+import { getSiteSettings } from "@/lib/site-settings";
+import { buildLocalBusinessSchema } from "@/lib/schema";
 
 export const metadata: Metadata = {
   title: "Aluminium Doors and Windows Dubai | Swiftrooms",
@@ -31,7 +33,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const [settings, productCategories, portfolioProjects, blogPosts, processSteps, testimonials] =
+  const [settings, productCategories, portfolioProjects, blogPosts, processSteps, testimonials, siteSettings] =
     await Promise.all([
       getHomeSettings(),
       getCategories(),
@@ -39,9 +41,11 @@ export default async function Home() {
       getArticles(),
       getProcessSteps(),
       getTestimonials(),
+      getSiteSettings(),
     ]);
   settings.hero.subheading =
     "Engineered to perform. Built to outlast. Premium aluminium doors and windows in Dubai and across the UAE, complemented by high-performance uPVC and glazing systems, installed by our certified specialists.";
+  const localBusinessSchema = buildLocalBusinessSchema(siteSettings.contact);
   const reviewSchema = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -69,6 +73,7 @@ export default async function Home() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <HomeClient

@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { CTALink } from "@/components/forms/CTAButtons";
 import ScrollReveal from "@/components/ui/ScrollReveal";
 import LeadTypeform from "@/components/forms/LeadTypeform";
+import { buildLocalBusinessSchema } from "@/lib/schema";
 
 const DEFAULT_HOURS = [
   { days: "Sunday – Thursday", value: "8:30 – 17:30" },
@@ -47,9 +48,11 @@ export default async function ContactPage() {
       { "@type": "ListItem", position: 2, name: "Contact", item: `${base}/contact` },
     ],
   };
+  const localBusinessSchema = buildLocalBusinessSchema(site.contact);
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <section className="pt-32 pb-12 md:pt-44 md:pb-20 lg:pt-52 lg:pb-28">
         <div className="max-w-screen-xl mx-auto px-5 md:px-8 lg:px-10">
@@ -124,6 +127,25 @@ export default async function ContactPage() {
           </ScrollReveal>
         </div>
       </section>
+
+      {/* Map */}
+      <div className="max-w-screen-xl mx-auto px-5 md:px-8 lg:px-10 pb-20">
+        <ScrollReveal>
+          <div className="w-full h-[400px] overflow-hidden rounded-sm border border-gray-100">
+            <iframe
+              title="Swiftrooms showroom location"
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                `Swiftrooms, ${site.showroom.addressLine1}, ${site.showroom.city}, ${site.showroom.country}`
+              )}&output=embed`}
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
+        </ScrollReveal>
+      </div>
 
       {/* Quick links */}
       <section className="py-12 md:py-16 border-t border-gray-100 bg-[#f8f9fa]">
