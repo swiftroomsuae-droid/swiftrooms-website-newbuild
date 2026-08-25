@@ -144,9 +144,15 @@ export default function Navbar({ nav, quoteLabel }: { nav?: NavData; quoteLabel?
             />
           </Link>
 
-          {/* ── Desktop nav ── */}
+          {/* ── Desktop nav — centered in the space between the logo and the
+              Get a Quote button via flex-1 + justify-center, so it isn't
+              pinned to either edge. Showroom lives in this same row (styled
+              identically to the nav links) so the whole About→Showroom set
+              reads as one centered group; only the Quote button stays
+              right-anchored. ── */}
+          <div className="hidden xl:flex flex-1 items-center justify-center gap-6 min-w-0">
           <ul
-            className={`hidden lg:flex items-center gap-7 font-accent text-[1rem] tracking-[0.12em] uppercase font-semibold transition-colors duration-300 ${
+            className={`flex items-center gap-5 whitespace-nowrap font-accent text-[0.95rem] tracking-[0.08em] uppercase font-semibold transition-colors duration-300 ${
               heroMode ? "text-white" : "text-[#3a3a3c]"
             }`}
           >
@@ -226,20 +232,18 @@ export default function Navbar({ nav, quoteLabel }: { nav?: NavData; quoteLabel?
                 </svg>
               </Link>
             </li>
+            <li>
+              <Link href="/showroom" className={`transition-colors ${heroMode ? "hover:text-white/70" : "hover:text-[#007969]"}`}>
+                Showroom
+              </Link>
+            </li>
           </ul>
+          </div>
 
-          {/* ── Desktop CTAs ── */}
-          <div className="hidden lg:flex items-center gap-3">
-            <Link
-              href="/showroom"
-              className={`font-accent text-[1rem] tracking-[0.12em] uppercase font-semibold transition-colors px-3 py-2 ${
-                heroMode ? "text-white hover:text-white/70" : "text-[#3a3a3c] hover:text-[#007969]"
-              }`}
-            >
-              Showroom
-            </Link>
+          {/* ── Get a Quote — stays right-anchored, outside the centered group ── */}
+          <div className="hidden xl:flex items-center">
             <QuoteButton
-              className={`font-accent font-semibold text-[1rem] tracking-[0.12em] uppercase px-5 py-2.5 transition-all ${
+              className={`font-accent font-semibold text-[0.95rem] tracking-[0.08em] uppercase px-4 py-2.5 transition-all ${
                 heroMode
                   ? "border border-white/50 text-white hover:bg-white hover:text-[#007969]"
                   : "btn-brand"
@@ -251,7 +255,7 @@ export default function Navbar({ nav, quoteLabel }: { nav?: NavData; quoteLabel?
 
           {/* ── Mobile burger — minimal thin lines ── */}
           <button
-            className={`lg:hidden p-2 -mr-1 transition-colors ${heroMode ? "text-white" : "text-[#1c1c1e]"}`}
+            className={`xl:hidden p-2 -mr-1 transition-colors ${heroMode ? "text-white" : "text-[#1c1c1e]"}`}
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label={menuOpen ? "Close menu" : "Open menu"}
             aria-expanded={menuOpen}
@@ -415,7 +419,7 @@ export default function Navbar({ nav, quoteLabel }: { nav?: NavData; quoteLabel?
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.22 } }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="fixed inset-0 z-[60] bg-[#0f0f0f] flex flex-col lg:hidden overflow-hidden"
+            className="fixed inset-0 z-[60] bg-[#0f0f0f] flex flex-col xl:hidden overflow-hidden"
           >
             {/* Header row — logo + close */}
             <div className="flex-shrink-0 flex items-center justify-between px-6 h-16">
