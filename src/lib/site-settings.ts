@@ -100,6 +100,7 @@ const DEFAULTS: SiteSettings = {
       heading: "Company",
       links: [
         { label: "About Us", href: "/about" },
+        { label: "Contact Us", href: "/contact" },
         { label: "Portfolio", href: "/portfolio" },
         { label: "Shop By Brand", href: "/brands" },
         { label: "Technical Hub", href: "/technical" },
