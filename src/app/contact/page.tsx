@@ -129,23 +129,23 @@ export default async function ContactPage() {
       </section>
 
       {/* Map */}
-      <div className="max-w-screen-xl mx-auto px-5 md:px-8 lg:px-10 pb-20">
-        <ScrollReveal>
-          <div className="w-full h-[400px] overflow-hidden rounded-sm border border-gray-100">
-            <iframe
-              title="Swiftrooms showroom location"
-              src={`https://maps.google.com/maps?q=${encodeURIComponent(
-                `Swiftrooms, ${site.showroom.addressLine1}, ${site.showroom.city}, ${site.showroom.country}`
-              )}&output=embed`}
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
-          </div>
-        </ScrollReveal>
-      </div>
+      <section className="pb-20">
+        <div className="max-w-screen-xl mx-auto px-5 md:px-8 lg:px-10">
+          <ScrollReveal>
+            <div className="relative rounded-xl overflow-hidden border border-gray-200 h-[320px] md:h-[420px] lg:h-[480px]">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3616.383716776185!2d55.11823018885498!3d24.987074200000002!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e5f6bcfbcc1dd2b%3A0x3409283432368103!2sSwift%20Rooms%20LLC%20-%20Windows%2C%20Doors%20%26%20Luxury%20Glass%20Rooms!5e0!3m2!1sen!2sin!4v1787728654500!5m2!1sen!2sin"
+                className="absolute inset-0 h-full w-full"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
+                title="Swiftrooms showroom &amp; factory location on Google Maps"
+              />
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
 
       {/* Quick links */}
       <section className="py-12 md:py-16 border-t border-gray-100 bg-[#f8f9fa]">
