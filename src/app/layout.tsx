@@ -57,6 +57,9 @@ export const metadata: Metadata = {
       "Premium aluminium windows, doors, curtain wall and glazing systems for UAE residential and commercial projects.",
     images: [`${SITE_URL}/brand/og-default.jpg`],
   },
+  verification: {
+    google: "zc1RnC6zSIsku1ntlNUWF8UOjzPp4XBKWIsDfM6eMv8",
+  },
 };
 
 const BASE = SITE_URL;
