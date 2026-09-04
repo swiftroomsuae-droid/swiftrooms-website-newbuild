@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 
 const TOTAL_STEPS = 8;
@@ -209,12 +210,12 @@ const INITIAL: FormData = {
 };
 
 export default function FreeQuoteForm({ onClose }: { onClose: () => void }) {
+  const router = useRouter();
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [data, setData] = useState<FormData>(INITIAL);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileNames, setFileNames] = useState<string[]>([]);
@@ -282,7 +283,8 @@ export default function FreeQuoteForm({ onClose }: { onClose: () => void }) {
         }),
       });
       if (!res.ok) throw new Error();
-      setSubmitted(true);
+      onClose();
+      router.push("/thank-you");
     } catch {
       setError(true);
     } finally {
@@ -295,35 +297,6 @@ export default function FreeQuoteForm({ onClose }: { onClose: () => void }) {
     center: { opacity: 1, x: 0 },
     exit: (dir: number) => ({ opacity: 0, x: dir * -24 }),
   };
-
-  if (submitted) {
-    return (
-      <div className="flex flex-col h-full">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 flex-shrink-0">
-          <span className="text-label text-[#007969]">Free Quote Request</span>
-          <button onClick={onClose} className="text-[#6b7280] hover:text-[#1c1c1e] transition-colors p-2.5 -m-1.5" aria-label="Close">
-            <CloseIcon />
-          </button>
-        </div>
-        <div className="flex-1 flex flex-col items-start justify-center px-8 py-12">
-          <div className="w-12 h-12 bg-[#1c1c1e] flex items-center justify-center mb-6">
-            <CheckIcon className="w-6 h-6 text-white" />
-          </div>
-          <p className="text-label text-[#007969] mb-3">Request Submitted</p>
-          <h2 className="font-heading text-2xl font-bold text-[#1c1c1e] mb-4 leading-snug">
-            Thank you, {data.name.split(" ")[0]}.<br />We&apos;ll be in touch.
-          </h2>
-          <p className="text-[#6b7280] text-sm leading-relaxed mb-8 max-w-sm">
-            Your quote request has been received. A member of our team will contact you via{" "}
-            {data.contactMethod} within one business day to discuss your project.
-          </p>
-          <button onClick={onClose} className="btn-brand">
-            Close
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   const progress = (step / (TOTAL_STEPS - 1)) * 100;
 
