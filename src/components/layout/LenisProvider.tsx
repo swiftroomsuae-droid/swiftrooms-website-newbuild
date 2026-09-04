@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Lenis from "lenis";
+import { setLenisController } from "@/lib/scroll-lock";
 
 export default function LenisProvider({ children }: { children: React.ReactNode }) {
   const lenisRef = useRef<Lenis | null>(null);
@@ -19,6 +20,7 @@ export default function LenisProvider({ children }: { children: React.ReactNode 
       smoothWheel: true,
     });
     lenisRef.current = lenis;
+    setLenisController({ stop: () => lenis.stop(), start: () => lenis.start() });
 
     function raf(time: number) {
       lenis.raf(time);
@@ -28,6 +30,7 @@ export default function LenisProvider({ children }: { children: React.ReactNode 
     const rafId = requestAnimationFrame(raf);
 
     return () => {
+      setLenisController(null);
       lenis.destroy();
       lenisRef.current = null;
       cancelAnimationFrame(rafId);

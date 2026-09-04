@@ -63,7 +63,7 @@ export function CTAFormProvider({ children }: { children: React.ReactNode }) {
       {children}
       <AnimatePresence>
         {activeForm && (
-          <div key="cta-modal" className="fixed inset-0 z-[200] flex">
+          <div key="cta-modal" className="fixed inset-0 z-[200] flex" data-lenis-prevent>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

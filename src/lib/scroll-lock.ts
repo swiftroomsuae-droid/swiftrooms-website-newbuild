@@ -13,12 +13,28 @@
  * scroll is released (and restored) only when the last one unlocks.
  *
  * On touch devices (where the scroll bug lives and Lenis is disabled) it uses
- * the robust `position: fixed` technique. On desktop it uses `overflow: hidden`
- * only, to avoid fighting the Lenis smooth-scroll controller.
+ * the robust `position: fixed` technique. On desktop, `body { overflow: hidden }`
+ * alone doesn't stop the background from scrolling: Lenis drives scrolling
+ * itself (it intercepts wheel events and animates `window.scrollTo`, independent
+ * of native overflow), so it also needs to be told to stop. LenisProvider
+ * registers its instance here via `setLenisController` so this module can pause
+ * it for the lock's duration — overlay content still scrolls normally because
+ * it's marked `data-lenis-prevent`, which Lenis itself respects even while stopped.
  */
 let lockCount = 0;
 let savedScrollY = 0;
 let usedFixed = false;
+
+interface LenisController {
+  stop: () => void;
+  start: () => void;
+}
+
+let lenisController: LenisController | null = null;
+
+export function setLenisController(controller: LenisController | null): void {
+  lenisController = controller;
+}
 
 export function lockScroll(): void {
   if (typeof document === "undefined") return;
@@ -36,6 +52,8 @@ export function lockScroll(): void {
     body.style.left = "0";
     body.style.right = "0";
     body.style.width = "100%";
+  } else {
+    lenisController?.stop();
   }
 }
 
@@ -54,6 +72,8 @@ export function unlockScroll(): void {
     body.style.right = "";
     body.style.width = "";
     window.scrollTo(0, savedScrollY);
+  } else {
+    lenisController?.start();
   }
   usedFixed = false;
 }
