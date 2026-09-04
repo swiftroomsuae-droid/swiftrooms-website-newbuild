@@ -255,7 +255,7 @@ export default function Navbar({ nav, quoteLabel }: { nav?: NavData; quoteLabel?
 
           {/* ── Mobile burger — minimal thin lines ── */}
           <button
-            className={`xl:hidden p-2 -mr-1 transition-colors ${heroMode ? "text-white" : "text-[#1c1c1e]"}`}
+            className={`xl:hidden min-w-11 min-h-11 -mr-2 flex items-center justify-center transition-colors ${heroMode ? "text-white" : "text-[#1c1c1e]"}`}
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label={menuOpen ? "Close menu" : "Open menu"}
             aria-expanded={menuOpen}
