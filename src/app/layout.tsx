@@ -58,7 +58,10 @@ export const metadata: Metadata = {
     images: [`${SITE_URL}/brand/og-default.jpg`],
   },
   verification: {
-    google: "zc1RnC6zSIsku1ntlNUWF8UOjzPp4XBKWIsDfM6eMv8",
+    google: [
+      "zc1RnC6zSIsku1ntlNUWF8UOjzPp4XBKWIsDfM6eMv8",
+      "9i_LgBIsY5xbEAA9Aunug2T9_t0_p1oswFuLRJvD9Rc",
+    ],
   },
 };
 
