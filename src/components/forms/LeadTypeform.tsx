@@ -4,10 +4,8 @@
 // Swiftrooms landing-page LeadForm. Reused on /enquire, /contact and /showroom.
 // Posts to the existing /api/enquire endpoint (WhatsApp/CallMeBot notify + log).
 import { useState, useRef, useMemo, KeyboardEvent } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-
-const WA_PHONE = "971505269149";
 
 type Country = { code: string; country: string; flag: string; minLength: number; maxLength: number };
 
@@ -128,6 +126,7 @@ export default function LeadTypeform({
   heading?: string;
   intro?: string;
 }) {
+  const router = useRouter();
   const [data, setData] = useState<Data>(EMPTY);
   const [files, setFiles] = useState<File[]>([]);
   const [fileNote, setFileNote] = useState("");
@@ -136,7 +135,6 @@ export default function LeadTypeform({
   const [emailError, setEmailError] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -225,54 +223,12 @@ export default function LeadTypeform({
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error();
-      setSubmitted(true);
+      router.push("/thank-you");
     } catch {
       setError(true);
     } finally {
       setSubmitting(false);
     }
-  }
-
-  function reset() {
-    setData(EMPTY); setFiles([]); setFileNote(""); setStep(0);
-    setReview(false); setSubmitted(false); setError(false); setEmailError(""); setPhoneError("");
-  }
-
-  function sendToPhone() {
-    const text = encodeURIComponent("Hi Swiftrooms — please send me your showroom details and location.");
-    window.open(`https://wa.me/${WA_PHONE}?text=${text}`, "_blank", "noopener");
-  }
-
-  // ── Thank-you ────────────────────────────────────────────────────────────
-  if (submitted) {
-    const firstName = data.name.trim().split(" ")[0];
-    return (
-      <div className="bg-white border border-gray-100 rounded-2xl p-8 md:p-12 text-center">
-        <div className="w-14 h-14 mx-auto rounded-full bg-[#f0fdf4] flex items-center justify-center mb-6">
-          <svg className="w-7 h-7 text-[#007969]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-        <h3 className="text-2xl font-semibold text-[#1c1c1e] mb-3">Thank You{firstName ? `, ${firstName}` : ""}!</h3>
-        <p className="text-[#6b7280] mb-2 max-w-md mx-auto">
-          Your quote request has been received and our team will contact you shortly.
-        </p>
-        <p className="text-[#6b7280] mb-8 max-w-md mx-auto">We&apos;ll arrange your free site visit by call or WhatsApp.</p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <button
-            onClick={sendToPhone}
-            className="inline-flex items-center justify-center gap-2 bg-[#25D366] text-white px-6 py-3.5 text-sm rounded-xl font-semibold hover:brightness-95 transition-all"
-          >
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z" /></svg>
-            Send to My Phone
-          </button>
-          <Link href="/" className="btn-outline justify-center">Return to Home</Link>
-          <button onClick={reset} className="text-[0.7rem] tracking-widest uppercase text-gray-400 hover:text-[#007969] transition-colors px-4 py-3">
-            Submit another request
-          </button>
-        </div>
-      </div>
-    );
   }
 
   const progress = review ? 1 : (step + 1) / total;
