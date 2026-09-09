@@ -121,10 +121,12 @@ export default function LeadTypeform({
   source = "enquire",
   heading = "Let's get you a free quote",
   intro = "Answer a few quick questions and we'll come back to you within 12 hours.",
+  thankYouPath = "/thank-you",
 }: {
   source?: string;
   heading?: string;
   intro?: string;
+  thankYouPath?: string;
 }) {
   const router = useRouter();
   const [data, setData] = useState<Data>(EMPTY);
@@ -223,7 +225,7 @@ export default function LeadTypeform({
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error();
-      router.push("/thank-you");
+      router.push(thankYouPath);
     } catch {
       setError(true);
     } finally {

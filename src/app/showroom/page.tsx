@@ -307,6 +307,7 @@ export default async function ShowroomPage() {
                   source="showroom"
                   heading="Book a showroom visit"
                   intro="Answer a few quick questions and we'll confirm your appointment within 12 hours."
+                  thankYouPath="/thank-you-book-showroom-visit"
                 />
               </div>
             </div>
