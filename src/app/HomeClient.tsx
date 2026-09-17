@@ -822,7 +822,7 @@ export default function HomeClient({
             </ScrollReveal>
             {portfolioProjects.slice(0, 4).map((project, i) => (
               <ScrollReveal key={project.id} delay={i * 0.07}>
-                <Link href={`/portfolio/${project.slug}`} className="group block bg-white border border-gray-100 rounded-2xl overflow-hidden card-hover">
+                <Link href={`/portfolio/${project.slug}`} className="group flex flex-col h-full bg-white border border-gray-100 rounded-2xl overflow-hidden card-hover">
                   <div className="h-40 relative overflow-hidden bg-[#f0fdf4]">
                     {project.image && <Image src={project.image} alt={project.name} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
