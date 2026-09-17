@@ -634,7 +634,7 @@ export default function HomeClient({
               </ScrollReveal>
             ))}
             <ScrollReveal className="md:col-span-2 lg:col-span-2">
-              <Link href="/catalogue/skylights" className="group block relative h-56 overflow-hidden rounded-2xl card-hover">
+              <Link href="/catalogue/skylights" className="group block relative h-72 overflow-hidden rounded-2xl card-hover">
                 <Image src="/images/products/skylights.png" alt="Skylights and garden rooms" fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 p-4 sm:p-6">
