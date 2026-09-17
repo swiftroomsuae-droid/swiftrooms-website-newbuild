@@ -6,9 +6,6 @@ import { QuoteButton, ShowroomButton } from "@/components/forms/CTAButtons";
 import Image from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
 import ScrollReveal from "@/components/ui/ScrollReveal";
-import CortizoLogo from "@/components/logos/CortizoLogo";
-import SchucoLogo from "@/components/logos/SchucoLogo";
-import DeceuninckLogo from "@/components/logos/DeceuninckLogo";
 import ProductSelector from "@/components/ProductSelector";
 import type { HomeSettings } from "@/lib/homepage";
 import type { ProductCategory, BlogPost, Testimonial } from "@/lib/data";
@@ -17,14 +14,14 @@ import type { ProcessStep } from "@/lib/about";
 import { altTextFor } from "@/lib/altText";
 import ContentSection from "@/components/blocks/ContentSection";
 
-// Brand logos for the "Brands We Work With" cards (mirrors the landing page).
-// Schüco / Deceuninck / Cortizo are teal SVGs; GEX & Vetromax are teal PNGs.
+// Brand logos for the "Brands We Work With" cards — each brand's own logo,
+// full colour (not the teal-tinted marks used elsewhere on the site).
 const brandLogos: Record<string, { Svg?: React.ComponentType<{ className?: string }>; img?: string }> = {
-  Cortizo: { Svg: CortizoLogo },
-  "Schüco": { Svg: SchucoLogo },
-  Deceuninck: { Svg: DeceuninckLogo },
-  Vetromax: { img: "/brand/logos/vetromax-teal.png" },
-  "Gulf Extrusions": { img: "/brand/logos/gulf-extrusions-teal.png" },
+  "Schüco": { img: "/brand/logos/schuco.webp" },
+  Reynaers: { img: "/brand/logos/reynaers.webp" },
+  Cortizo: { img: "/brand/logos/cortizo.png" },
+  Deceuninck: { img: "/brand/logos/deceuninck.webp" },
+  UltraFrame: { img: "/brand/logos/ultraframe.webp" },
 };
 
 function BrandMark({ name }: { name: string }) {

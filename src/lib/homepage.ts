@@ -97,10 +97,10 @@ const DEFAULTS: HomeSettings = {
   ],
   brandCards: [
     { name: "Schüco", country: "Germany", tagline: "German engineering excellence" },
-    { name: "Deceuninck", country: "Belgium", tagline: "Belgian uPVC innovation" },
-    { name: "Gulf Extrusions", country: "UAE", tagline: "Built for the Gulf climate" },
-    { name: "Vetromax", country: "UAE", tagline: "Frameless & ultra-slim glazing" },
+    { name: "Reynaers", country: "Belgium", tagline: "Belgian engineering, by system" },
     { name: "Cortizo", country: "Spain", tagline: "European precision systems" },
+    { name: "Deceuninck", country: "Belgium", tagline: "Belgian uPVC innovation" },
+    { name: "UltraFrame", country: "UK", tagline: "British roof engineering" },
   ],
 };
 
