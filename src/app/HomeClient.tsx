@@ -515,11 +515,6 @@ export default function HomeClient({
                 <div className="absolute bottom-0 left-0 w-[65%] h-[50%] overflow-hidden rounded-2xl shadow-2xl border-4 border-white">
                   <Image src="/brand/product-bedroom-doors.png" alt="Bedroom with casement doors" fill className="object-cover" />
                 </div>
-                <div className="absolute top-[50%] left-[35%] w-16 h-16 bg-[#007969] rounded-2xl flex items-center justify-center shadow-xl z-10">
-                  <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
               </div>
             </div>
           </ScrollReveal>
