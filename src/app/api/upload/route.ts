@@ -1,46 +1,69 @@
-import { NextResponse } from "next/server";
-import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
+import { NextRequest, NextResponse } from "next/server";
 
-// Issues short-lived tokens so the enquiry forms can upload drawings/photos
-// straight from the browser to Vercel Blob. Files never pass through this
-// function, so Vercel's 4.5 MB request limit doesn't apply.
+// Receives one enquiry attachment at a time and stores it in LeadOptimizer
+// (GHL) Media Storage, returning the CRM-hosted link. Nothing is kept on
+// Vercel. Vercel caps request bodies at ~4.5 MB, hence the 4 MB file limit.
 //
-// Requires BLOB_READ_WRITE_TOKEN (added automatically when a Blob store is
-// connected to the project in Vercel → Storage). Without it this returns an
-// error and the forms fall back to sending file names only.
+// Server-only env: GHL_PIT_TOKEN (needs medias.write), optional
+// GHL_MEDIA_FOLDER_ID (a Media Storage folder to file uploads under).
 
-const MAX_UPLOAD_BYTES = 25 * 1024 * 1024; // 25 MB per file
+const API_BASE = "https://services.leadconnectorhq.com";
+const API_VERSION = "2021-07-28";
+const MAX_BYTES = 4 * 1024 * 1024;
+const ALLOWED_EXT = /\.(pdf|jpe?g|png|dwg)$/i;
 
-const ALLOWED_CONTENT_TYPES = [
-  "application/pdf",
-  "image/jpeg",
-  "image/png",
-  // DWG has no single registered type and browsers often report none.
-  "image/vnd.dwg",
-  "application/acad",
-  "application/x-dwg",
-  "application/octet-stream",
-];
+function fail(status: number, error: string) {
+  return NextResponse.json({ error }, { status });
+}
 
-export async function POST(request: Request) {
-  const body = (await request.json()) as HandleUploadBody;
+export async function POST(req: NextRequest) {
+  // Same-origin only: this endpoint exists for our own forms.
+  const origin = req.headers.get("origin");
+  const host = req.headers.get("host");
+  if (origin && host && new URL(origin).host !== host) return fail(403, "Forbidden");
+
+  const token = process.env.GHL_PIT_TOKEN;
+  if (!token) return fail(503, "Uploads not configured");
+
+  let file: File | null = null;
+  try {
+    const form = await req.formData();
+    const f = form.get("file");
+    if (f instanceof File) file = f;
+  } catch {
+    return fail(400, "Invalid upload");
+  }
+  if (!file) return fail(400, "No file");
+  if (!ALLOWED_EXT.test(file.name)) return fail(415, "File type not allowed");
+  if (file.size > MAX_BYTES) return fail(413, "File too large");
+
+  const name = file.name.slice(0, 200);
+  const upstream = new FormData();
+  upstream.append("file", file, name);
+  upstream.append("name", name);
+  upstream.append("hosted", "false");
+  if (process.env.GHL_MEDIA_FOLDER_ID) upstream.append("parentId", process.env.GHL_MEDIA_FOLDER_ID);
 
   try {
-    const result = await handleUpload({
-      body,
-      request,
-      onBeforeGenerateToken: async (pathname) => {
-        if (!pathname.startsWith("enquiries/")) throw new Error("Invalid upload path");
-        return {
-          allowedContentTypes: ALLOWED_CONTENT_TYPES,
-          maximumSizeInBytes: MAX_UPLOAD_BYTES,
-          addRandomSuffix: true,
-        };
-      },
+    const res = await fetch(`${API_BASE}/medias/upload-file`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, Version: API_VERSION, Accept: "application/json" },
+      body: upstream,
+      signal: AbortSignal.timeout(60_000),
     });
-    return NextResponse.json(result);
+    if (!res.ok) {
+      console.error("[UPLOAD] CRM rejected", res.status, await res.text().catch(() => ""));
+      return fail(502, "Upload failed");
+    }
+    const data = (await res.json()) as { url?: string; fileUrl?: string };
+    const url = data.url || data.fileUrl;
+    if (!url) {
+      console.error("[UPLOAD] CRM response had no url", data);
+      return fail(502, "Upload failed");
+    }
+    return NextResponse.json({ name, url });
   } catch (err) {
-    console.error("[UPLOAD] token request rejected", err);
-    return NextResponse.json({ error: "Upload not available" }, { status: 400 });
+    console.error("[UPLOAD] CRM unreachable", err);
+    return fail(502, "Upload failed");
   }
 }

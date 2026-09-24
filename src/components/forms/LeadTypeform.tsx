@@ -6,7 +6,7 @@
 import { useState, useRef, useMemo, KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { uploadEnquiryFiles } from "@/lib/uploadEnquiryFiles";
+import { uploadEnquiryFiles, MAX_UPLOAD_BYTES } from "@/lib/uploadEnquiryFiles";
 
 type Country = { code: string; country: string; flag: string; minLength: number; maxLength: number };
 
@@ -72,7 +72,7 @@ const TEMP_EMAIL_DOMAINS = [
 ];
 
 const MAX_FILES = 5;
-const MAX_SIZE = 25 * 1024 * 1024; // 25 MB, matches /api/upload
+const MAX_SIZE = MAX_UPLOAD_BYTES; // 4 MB
 const ACCEPT = ".pdf,.jpg,.jpeg,.png";
 const ALLOWED_EXT = ["pdf", "jpg", "jpeg", "png"];
 
@@ -188,7 +188,7 @@ export default function LeadTypeform({
     const accepted = Array.from(list).filter((f) => {
       const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
       if (!ALLOWED_EXT.includes(ext)) { skipped.push(`${f.name} (unsupported type)`); return false; }
-      if (f.size > MAX_SIZE) { skipped.push(`${f.name} (over 25 MB)`); return false; }
+      if (f.size > MAX_SIZE) { skipped.push(`${f.name} (over 4 MB — please send via WhatsApp)`); return false; }
       return true;
     });
     const combined = [...files, ...accepted].slice(0, MAX_FILES);

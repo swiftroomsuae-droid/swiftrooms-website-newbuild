@@ -1,27 +1,23 @@
 "use client";
 
-import { upload } from "@vercel/blob/client";
 import type { Attachment } from "./enquiryAttachments";
 
-// Uploads attached drawings/photos to Vercel Blob (temporary holding spot) and
-// returns { name, url } per file. The server then moves each file into
-// LeadOptimizer Media Storage (see enquiryAttachments.ts). A file that fails
-// to upload comes back without a url, so the enquiry itself is never lost.
+// Sends each attached file to /api/upload, which stores it in LeadOptimizer
+// Media Storage and returns the CRM link. A file that fails comes back without
+// a url, so the enquiry itself is never lost.
 
-function safeName(name: string): string {
-  return name.replace(/[^\w.\-]+/g, "_").slice(-100) || "file";
-}
+export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024; // matches /api/upload
 
 export async function uploadEnquiryFiles(files: File[]): Promise<Attachment[]> {
   return Promise.all(
     files.map(async (file) => {
       try {
-        const blob = await upload(`enquiries/${safeName(file.name)}`, file, {
-          access: "public",
-          handleUploadUrl: "/api/upload",
-          contentType: file.type || "application/octet-stream",
-        });
-        return { name: file.name, url: blob.url };
+        const form = new FormData();
+        form.append("file", file);
+        const res = await fetch("/api/upload", { method: "POST", body: form });
+        if (!res.ok) throw new Error(`upload ${res.status}`);
+        const { url } = (await res.json()) as { url?: string };
+        return url ? { name: file.name, url } : { name: file.name };
       } catch (err) {
         console.error("[UPLOAD] failed", file.name, err);
         return { name: file.name };

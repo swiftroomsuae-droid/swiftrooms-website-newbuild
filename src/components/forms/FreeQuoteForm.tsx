@@ -3,11 +3,11 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { uploadEnquiryFiles } from "@/lib/uploadEnquiryFiles";
+import { uploadEnquiryFiles, MAX_UPLOAD_BYTES } from "@/lib/uploadEnquiryFiles";
 
 const TOTAL_STEPS = 8;
 const MAX_FILES = 5;
-const MAX_FILE_SIZE = 25 * 1024 * 1024; // matches /api/upload
+const MAX_FILE_SIZE = MAX_UPLOAD_BYTES;
 
 const PROJECT_TYPES = [
   "Aluminium Sliding Doors",
@@ -472,7 +472,7 @@ export default function FreeQuoteForm({ onClose }: { onClose: () => void }) {
                         const tooBig = picked.filter((f) => f.size > MAX_FILE_SIZE).map((f) => f.name);
                         const accepted = picked.filter((f) => f.size <= MAX_FILE_SIZE).slice(0, MAX_FILES);
                         const notes: string[] = [];
-                        if (tooBig.length) notes.push(`${tooBig.join(", ")} over 25 MB and skipped`);
+                        if (tooBig.length) notes.push(`${tooBig.join(", ")} over 4 MB — please send via WhatsApp after submitting`);
                         if (picked.length - tooBig.length > MAX_FILES) notes.push(`only the first ${MAX_FILES} files were kept`);
                         setFiles(accepted);
                         setFileNote(notes.length ? `Note: ${notes.join("; ")}.` : "");
@@ -491,7 +491,7 @@ export default function FreeQuoteForm({ onClose }: { onClose: () => void }) {
                   )}
                   {fileNote && <p className="text-xs text-[#b45309] mt-2">{fileNote}</p>}
                   <p className="text-xs text-gray-400 mt-2">
-                    Up to {MAX_FILES} files, 25 MB each. They&apos;re sent securely to our team with your enquiry.
+                    Up to {MAX_FILES} files, 4 MB each, sent securely to our team with your enquiry. Larger drawings can be sent via WhatsApp.
                   </p>
                 </div>
                 <div>
