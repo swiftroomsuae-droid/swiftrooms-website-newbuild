@@ -3,8 +3,11 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
+import { uploadEnquiryFiles, MAX_UPLOAD_BYTES } from "@/lib/uploadEnquiryFiles";
 
 const TOTAL_STEPS = 8;
+const MAX_FILES = 5;
+const MAX_FILE_SIZE = MAX_UPLOAD_BYTES;
 
 const PROJECT_TYPES = [
   "Aluminium Sliding Doors",
@@ -218,7 +221,9 @@ export default function FreeQuoteForm({ onClose }: { onClose: () => void }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [fileNames, setFileNames] = useState<string[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
+  const [fileNote, setFileNote] = useState("");
+  const fileNames = files.map((f) => f.name);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const set = (field: keyof FormData) => (value: string) =>
@@ -263,6 +268,8 @@ export default function FreeQuoteForm({ onClose }: { onClose: () => void }) {
     setError(false);
     try {
       const locationParts = [data.area, data.emirate, data.address].filter(Boolean);
+      // Upload attachments first so the CRM gets links, not just file names.
+      const attachments = await uploadEnquiryFiles(files);
       const res = await fetch("/api/enquire", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -276,7 +283,8 @@ export default function FreeQuoteForm({ onClose }: { onClose: () => void }) {
           address: data.address,
           projectStage: data.projectStage,
           budgetScope: data.budgetScope,
-          hasFiles: fileNames.length > 0 ? `Yes — ${fileNames.join(", ")}` : data.hasFiles,
+          hasFiles: data.hasFiles,
+          attachments,
           notes: data.notes,
           name: data.name,
           email: data.email,
@@ -460,8 +468,14 @@ export default function FreeQuoteForm({ onClose }: { onClose: () => void }) {
                       accept=".pdf,.dwg,.jpg,.jpeg,.png"
                       className="hidden"
                       onChange={(e) => {
-                        const names = Array.from(e.target.files ?? []).map((f) => f.name);
-                        setFileNames(names);
+                        const picked = Array.from(e.target.files ?? []);
+                        const tooBig = picked.filter((f) => f.size > MAX_FILE_SIZE).map((f) => f.name);
+                        const accepted = picked.filter((f) => f.size <= MAX_FILE_SIZE).slice(0, MAX_FILES);
+                        const notes: string[] = [];
+                        if (tooBig.length) notes.push(`${tooBig.join(", ")} over 4 MB — please send via WhatsApp after submitting`);
+                        if (picked.length - tooBig.length > MAX_FILES) notes.push(`only the first ${MAX_FILES} files were kept`);
+                        setFiles(accepted);
+                        setFileNote(notes.length ? `Note: ${notes.join("; ")}.` : "");
                       }}
                     />
                   </div>
@@ -475,8 +489,9 @@ export default function FreeQuoteForm({ onClose }: { onClose: () => void }) {
                       ))}
                     </ul>
                   )}
+                  {fileNote && <p className="text-xs text-[#b45309] mt-2">{fileNote}</p>}
                   <p className="text-xs text-gray-400 mt-2">
-                    Files are noted and our team will request them during consultation.
+                    Up to {MAX_FILES} files, 4 MB each, sent securely to our team with your enquiry. Larger drawings can be sent via WhatsApp.
                   </p>
                 </div>
                 <div>
@@ -536,7 +551,7 @@ export default function FreeQuoteForm({ onClose }: { onClose: () => void }) {
                   <SummaryRow label="Location" value={[data.area, data.emirate].filter(Boolean).join(", ")} />
                   <SummaryRow label="Stage" value={data.projectStage} />
                   <SummaryRow label="Scope" value={data.budgetScope} />
-                  {fileNames.length > 0 && <SummaryRow label="Files" value={`${fileNames.length} file(s) noted`} />}
+                  {fileNames.length > 0 && <SummaryRow label="Files" value={`${fileNames.length} file(s) attached`} />}
                   {data.notes && <SummaryRow label="Notes" value={data.notes} />}
                   <SummaryRow label="Name" value={data.name} />
                   <SummaryRow label="Email" value={data.email} />
@@ -592,7 +607,7 @@ export default function FreeQuoteForm({ onClose }: { onClose: () => void }) {
             disabled={submitting}
             className="btn-brand py-3 px-6 text-xs disabled:opacity-60"
           >
-            {submitting ? "Submitting…" : "Submit Quote Request"}
+            {submitting ? (files.length ? "Uploading files…" : "Submitting…") : "Submit Quote Request"}
           </button>
         )}
       </div>

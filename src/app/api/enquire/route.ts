@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildLead, joinValue, sendToCrm } from "@/lib/crm";
+import { formatAttachments } from "@/lib/enquiryAttachments";
 
 const WA_PHONE = "971505269149";
 
@@ -35,6 +36,11 @@ function normaliseEnquiry(body: Record<string, unknown>) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+
+    // Attachments are already in LeadOptimizer Media Storage (/api/upload);
+    // their CRM links replace the plain file names in every downstream field.
+    const attachmentLines = formatAttachments(body.attachments);
+    if (attachmentLines) body.files = attachmentLines;
 
     const {
       name, phone, email, contactMethod, message,

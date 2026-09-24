@@ -6,6 +6,7 @@
 import { useState, useRef, useMemo, KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { uploadEnquiryFiles, MAX_UPLOAD_BYTES } from "@/lib/uploadEnquiryFiles";
 
 type Country = { code: string; country: string; flag: string; minLength: number; maxLength: number };
 
@@ -71,7 +72,7 @@ const TEMP_EMAIL_DOMAINS = [
 ];
 
 const MAX_FILES = 5;
-const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_SIZE = MAX_UPLOAD_BYTES; // 4 MB
 const ACCEPT = ".pdf,.jpg,.jpeg,.png";
 const ALLOWED_EXT = ["pdf", "jpg", "jpeg", "png"];
 
@@ -187,7 +188,7 @@ export default function LeadTypeform({
     const accepted = Array.from(list).filter((f) => {
       const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
       if (!ALLOWED_EXT.includes(ext)) { skipped.push(`${f.name} (unsupported type)`); return false; }
-      if (f.size > MAX_SIZE) { skipped.push(`${f.name} (over 10 MB)`); return false; }
+      if (f.size > MAX_SIZE) { skipped.push(`${f.name} (over 4 MB — please send via WhatsApp)`); return false; }
       return true;
     });
     const combined = [...files, ...accepted].slice(0, MAX_FILES);
@@ -202,6 +203,8 @@ export default function LeadTypeform({
     setSubmitting(true);
     setError(false);
     const productLabels = data.productsNeeded.map((v) => label(PRODUCTS, v));
+    // Upload attachments first so the CRM gets links, not just file names.
+    const attachments = await uploadEnquiryFiles(files);
     const payload = {
       source,
       name: data.name,
@@ -213,7 +216,7 @@ export default function LeadTypeform({
       area: data.siteLocation,
       message: productLabels.length ? `Interested in: ${productLabels.join(", ")}` : "",
       notes: data.message,
-      files: files.map((f) => f.name).join(", "),
+      attachments,
       productsNeeded: productLabels,
       privacyConsent: data.privacyConsent,
       marketingConsent: data.marketingConsent,
