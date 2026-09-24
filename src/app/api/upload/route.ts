@@ -16,6 +16,7 @@ const ALLOWED_EXT = /\.(pdf|jpe?g|png|webp|gif|dwg)$/i;
 // attachments here too, so it doesn't need its own copy of the CRM token.
 // Extra origins can be added via UPLOAD_ALLOWED_ORIGINS (comma-separated).
 const LANDING_ORIGINS = [
+  "https://landingpage.swiftrooms.ae",
   "https://swiftrooms-landingpage.vercel.app",
   ...(process.env.UPLOAD_ALLOWED_ORIGINS ?? "").split(",").map((o) => o.trim()).filter(Boolean),
 ];
