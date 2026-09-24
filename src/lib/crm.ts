@@ -16,6 +16,8 @@
 //     as a failed submission, so failures are logged and swallowed. The
 //     WhatsApp alert and the server log remain the backstop.
 
+import { upsertContactWithFields } from "./ghlApi";
+
 const TIMEOUT_MS = 8_000;
 
 export type CrmLead = Record<string, string | number | boolean | undefined | null>;
@@ -65,6 +67,15 @@ export function joinValue(v: unknown): string {
  * routes log but do not surface to the client.
  */
 export async function sendToCrm(lead: CrmLead): Promise<boolean> {
+  // Write the answers onto the contact as custom fields first (when the API
+  // token is configured), so the webhook workflow that follows — which sends
+  // the auto-reply — updates the same, already-populated contact.
+  const apiOk = await upsertContactWithFields(lead);
+  const webhookOk = await sendToWebhook(lead);
+  return apiOk || webhookOk;
+}
+
+async function sendToWebhook(lead: CrmLead): Promise<boolean> {
   const url = process.env.GHL_WEBHOOK_URL;
   if (!url) return false;
 
