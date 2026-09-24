@@ -10,17 +10,43 @@ import { NextRequest, NextResponse } from "next/server";
 const API_BASE = "https://services.leadconnectorhq.com";
 const API_VERSION = "2021-07-28";
 const MAX_BYTES = 4 * 1024 * 1024;
-const ALLOWED_EXT = /\.(pdf|jpe?g|png|dwg)$/i;
+const ALLOWED_EXT = /\.(pdf|jpe?g|png|webp|gif|dwg)$/i;
 
-function fail(status: number, error: string) {
-  return NextResponse.json({ error }, { status });
+// The separate landing-page app (swiftrooms-landingpage project) uploads its
+// attachments here too, so it doesn't need its own copy of the CRM token.
+// Extra origins can be added via UPLOAD_ALLOWED_ORIGINS (comma-separated).
+const LANDING_ORIGINS = [
+  "https://swiftrooms-landingpage.vercel.app",
+  ...(process.env.UPLOAD_ALLOWED_ORIGINS ?? "").split(",").map((o) => o.trim()).filter(Boolean),
+];
+const LANDING_PREVIEW = /^https:\/\/swiftrooms-landingpage-[a-z0-9-]+-swiftroomsuae-2242s-projects\.vercel\.app$/;
+
+function allowedCrossOrigin(origin: string | null): string | null {
+  if (!origin) return null;
+  return LANDING_ORIGINS.includes(origin) || LANDING_PREVIEW.test(origin) ? origin : null;
+}
+
+function corsHeaders(origin: string | null): Record<string, string> {
+  return origin ? { "Access-Control-Allow-Origin": origin, Vary: "Origin" } : {};
+}
+
+export async function OPTIONS(req: NextRequest) {
+  const origin = allowedCrossOrigin(req.headers.get("origin"));
+  if (!origin) return new NextResponse(null, { status: 403 });
+  return new NextResponse(null, {
+    status: 204,
+    headers: { ...corsHeaders(origin), "Access-Control-Allow-Methods": "POST", "Access-Control-Max-Age": "86400" },
+  });
 }
 
 export async function POST(req: NextRequest) {
-  // Same-origin only: this endpoint exists for our own forms.
+  // Our own pages, or the landing-page app. Nothing else.
   const origin = req.headers.get("origin");
   const host = req.headers.get("host");
-  if (origin && host && new URL(origin).host !== host) return fail(403, "Forbidden");
+  const cross = allowedCrossOrigin(origin);
+  const fail = (status: number, error: string) =>
+    NextResponse.json({ error }, { status, headers: corsHeaders(cross) });
+  if (origin && host && new URL(origin).host !== host && !cross) return fail(403, "Forbidden");
 
   const token = process.env.GHL_PIT_TOKEN;
   if (!token) return fail(503, "Uploads not configured");
@@ -61,7 +87,7 @@ export async function POST(req: NextRequest) {
       console.error("[UPLOAD] CRM response had no url", data);
       return fail(502, "Upload failed");
     }
-    return NextResponse.json({ name, url });
+    return NextResponse.json({ name, url }, { headers: corsHeaders(cross) });
   } catch (err) {
     console.error("[UPLOAD] CRM unreachable", err);
     return fail(502, "Upload failed");
