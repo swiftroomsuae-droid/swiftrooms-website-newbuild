@@ -204,7 +204,7 @@ export default function LeadTypeform({
     setError(false);
     const productLabels = data.productsNeeded.map((v) => label(PRODUCTS, v));
     // Upload attachments first so the CRM gets links, not just file names.
-    const fileLinks = await uploadEnquiryFiles(files);
+    const attachments = await uploadEnquiryFiles(files);
     const payload = {
       source,
       name: data.name,
@@ -216,7 +216,7 @@ export default function LeadTypeform({
       area: data.siteLocation,
       message: productLabels.length ? `Interested in: ${productLabels.join(", ")}` : "",
       notes: data.message,
-      files: fileLinks,
+      attachments,
       productsNeeded: productLabels,
       privacyConsent: data.privacyConsent,
       marketingConsent: data.marketingConsent,

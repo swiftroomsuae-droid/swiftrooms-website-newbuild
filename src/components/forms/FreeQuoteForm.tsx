@@ -269,7 +269,7 @@ export default function FreeQuoteForm({ onClose }: { onClose: () => void }) {
     try {
       const locationParts = [data.area, data.emirate, data.address].filter(Boolean);
       // Upload attachments first so the CRM gets links, not just file names.
-      const fileLinks = await uploadEnquiryFiles(files);
+      const attachments = await uploadEnquiryFiles(files);
       const res = await fetch("/api/enquire", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -283,7 +283,8 @@ export default function FreeQuoteForm({ onClose }: { onClose: () => void }) {
           address: data.address,
           projectStage: data.projectStage,
           budgetScope: data.budgetScope,
-          hasFiles: fileLinks || data.hasFiles,
+          hasFiles: data.hasFiles,
+          attachments,
           notes: data.notes,
           name: data.name,
           email: data.email,
