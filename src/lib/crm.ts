@@ -90,6 +90,59 @@ export async function sendToCrm(lead: CrmLead): Promise<boolean> {
   }
 }
 
+// Human labels for the summary, in display order. Keys not listed here (and
+// empty values) are left out of the summary.
+const SUMMARY_LABELS: [string, string][] = [
+  ["source", "Form"],
+  ["pageSource", "Page / widget"],
+  ["submittedAt", "Submitted"],
+  ["fullName", "Name"],
+  ["phone", "Phone"],
+  ["email", "Email"],
+  ["contactMethod", "Preferred contact"],
+  ["projectType", "Interested in / project type"],
+  ["propertyType", "Property type"],
+  ["productsNeeded", "Products needed"],
+  ["area", "Area"],
+  ["emirate", "Emirate"],
+  ["address", "Address"],
+  ["location", "Location"],
+  ["projectStage", "Project stage"],
+  ["budgetScope", "Budget / scope"],
+  ["timeline", "Timeline"],
+  ["visitType", "Visit purpose"],
+  ["preferredTime", "Preferred date/time"],
+  ["altDateTime", "Alternative date/time"],
+  ["numVisitors", "Visitors"],
+  ["visitorRole", "Visitor role"],
+  ["resourceTitle", "Resource"],
+  ["resourceId", "Resource ID"],
+  ["files", "Files"],
+  ["notes", "Notes"],
+  ["message", "Message"],
+  ["marketingConsent", "Marketing consent"],
+  ["privacyConsent", "Privacy consent"],
+];
+
+/**
+ * Every answer as one readable block, so a single "Add Note" action in the GHL
+ * workflow ({{inboundWebhookRequest.summary}}) captures the whole enquiry
+ * without mapping each field individually.
+ */
+export function summaryFor(lead: CrmLead): string {
+  // `location` is area/emirate/address joined; show it only when the parts
+  // themselves weren't sent, so the summary doesn't repeat them.
+  const hasParts = ["area", "emirate", "address"].some((k) => joinValue(lead[k]).trim());
+  return SUMMARY_LABELS
+    .filter(([key]) => !(key === "location" && hasParts))
+    .map(([key, label]) => {
+      const value = joinValue(lead[key]).trim();
+      return value ? `${label}: ${value}` : "";
+    })
+    .filter(Boolean)
+    .join("\n");
+}
+
 /**
  * Build the flat payload shared by every form. `source` is the human-readable
  * label shown on the contact in GHL; `formType` is the machine key to branch on
@@ -106,7 +159,7 @@ export function buildLead(
   const name = joinValue(body.name);
   const { firstName, lastName } = splitName(name);
 
-  return {
+  const lead: CrmLead = {
     // Identity
     formType,
     source,
@@ -146,4 +199,6 @@ export function buildLead(
 
     ...extra,
   };
+
+  return { ...lead, summary: summaryFor(lead) };
 }
