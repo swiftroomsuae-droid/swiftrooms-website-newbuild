@@ -40,6 +40,7 @@ export const BRAND_CONTENT: Record<string, BrandContent> = {
       description:
         "Schüco systems are extruded to German certification tolerances and re-specified against Gulf summer data, thermal breaks, seals, and hardware built to hold their performance well past the point where standard profiles start to fail.",
     },
+    logo: { src: "/brand/logos/schuco.webp", alt: "Schüco Aluminium Windows logo" },
     blocks: [
       {
         eyebrow: "ENGINEERED IN GERMANY. BUILT FOR GULF HEAT.",
@@ -423,6 +424,7 @@ export const BRAND_CONTENT: Record<string, BrandContent> = {
       "Cortizo aluminium doors and windows by Swiftrooms for Dubai villas & penthouses, slim profiles, bi-fold doors and modern glazing systems. Get a free quote.",
     hero: { h1: "Cortizo Systems", tagline: "Spanish engineering, proven in heat.", description:
         "Cortizo covers windows, doors, sliding walls and curtain wall on one Spanish platform, Cor Vision, Cor 70, TP52, Alu-Steel, each built for a different opening and a different job." },
+    logo: { src: "/brand/logos/cortizo.png", alt: "Cortizo Systems logo" },
     blocks: [
       {
         eyebrow: "SPANISH ENGINEERING. TESTED WHERE IT MATTERS MOST.",
@@ -593,6 +595,7 @@ export const BRAND_CONTENT: Record<string, BrandContent> = {
       "Gulf Extrusions aluminium systems by Swiftrooms for Dubai villas, towers & commercial projects, TB600 windows, doors and CW facades. Get a free quote.",
     hero: { h1: "Gulf Extrusions", tagline: "Engineered for extremes. Designed without compromise.", description:
         "Gulf Extrusions delivers regionally engineered aluminium profiles, combining proven Gulf performance with advanced TB600 and CW systems for demanding architectural applications." },
+    logo: { src: "/brand/logos/gulf-extrusions-teal.png", alt: "Gulf Extrusions logo" },
     blocks: [
       {
         eyebrow: "THE ONE DIFFERENCE THAT ACTUALLY MATTERS",
@@ -778,6 +781,7 @@ export const BRAND_CONTENT: Record<string, BrandContent> = {
       "Deceuninck uPVC windows and doors by Swiftrooms for Dubai villas & apartments, multi-chamber profiles and UV-stabilised performance. Get a free quote.",
     hero: { h1: "Deceuninck", tagline: "Belgian uPVC. Engineered to last.", description:
         "A specialist in high-performance uPVC window and door profile systems. Deceuninck brings decades of Belgian profile engineering to a material built specifically to resist heat transfer, not just carry a colour and a shape." },
+    logo: { src: "/brand/logos/deceuninck.webp", alt: "Deceuninck logo" },
     blocks: [
       {
         eyebrow: "WHY A BELGIAN UPVC BRAND MAKES SENSE IN GULF HEAT",
@@ -948,6 +952,7 @@ export const BRAND_CONTENT: Record<string, BrandContent> = {
       "UltraFrame roof systems by Swiftrooms for Dubai villas, with LivinROOF, Ultraroof and glass roof options adapted for Gulf heat. Get a free quote today.",
     hero: { h1: "UltraFrame", tagline: "British roof engineering. Reworked for the sun.", description:
         "A manufacturer of conservatory, orangery and glazed roof systems. UltraFrame brings decades of UK roof engineering to structures whose single biggest job in this climate is keeping the sun's heat out, not just keeping the rain off." },
+    logo: { src: "/brand/logos/ultraframe.webp", alt: "UltraFrame logo" },
     blocks: [
       {
         eyebrow: "A ROOF BRAND BUILT FOR A DIFFERENT PROBLEM, SOLVED THE SAME WAY",
