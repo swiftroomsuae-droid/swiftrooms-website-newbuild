@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import ScrollReveal from "@/components/ui/ScrollReveal";
 import { BRAND_CONTENT } from "@/lib/brandContent";
+import { VETROMAX } from "@/lib/vetromaxContent";
 
 export const metadata: Metadata = {
   title: "Shop By Brand",
@@ -27,7 +28,11 @@ export const metadata: Metadata = {
 };
 
 export default function BrandsIndexPage() {
-  const brands = Object.entries(BRAND_CONTENT);
+  // Vetromax has its own bespoke page (/brands/vetromax) outside BRAND_CONTENT.
+  const brands = [
+    ...Object.entries(BRAND_CONTENT).map(([slug, b]) => ({ slug, h1: b.hero.h1, tagline: b.hero.tagline })),
+    { slug: "vetromax", h1: VETROMAX.name, tagline: VETROMAX.hero.tagline },
+  ];
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -51,7 +56,7 @@ export default function BrandsIndexPage() {
           </p>
         </ScrollReveal>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-gray-100">
-          {brands.map(([slug, brand], i) => (
+          {brands.map(({ slug, h1, tagline }, i) => (
             <ScrollReveal key={slug} delay={i * 0.08}>
               <Link
                 href={`/brands/${slug}`}
@@ -59,9 +64,9 @@ export default function BrandsIndexPage() {
               >
                 <p className="text-label text-[#007969] mb-3">Brand Partner</p>
                 <p className="text-xl font-semibold text-[#1c1c1e] mb-2 group-hover:text-[#007969] transition-colors">
-                  {brand.hero.h1}
+                  {h1}
                 </p>
-                <p className="text-[#6b7280] text-sm italic mb-4">{brand.hero.tagline}</p>
+                <p className="text-[#6b7280] text-sm italic mb-4">{tagline}</p>
                 <span className="text-[0.65rem] tracking-widest uppercase text-[#007969]">View system →</span>
               </Link>
             </ScrollReveal>
