@@ -12,6 +12,8 @@ export type BrandContent = {
   metaTitle: string;
   metaDescription: string;
   hero: { h1: string; tagline: string; description: string };
+  // Brand logo shown beside the hero text; omit to keep the hero single-column.
+  logo?: { src: string; alt: string };
   blocks: ContentBlock[];
   // Omit when the source doc has no "Works well with" section for this brand.
   worksWellWith?: { level?: 2 | 3 | 4 | 5 | 6; items: BrandWorksWellWithItem[] };
@@ -238,6 +240,7 @@ export const BRAND_CONTENT: Record<string, BrandContent> = {
       description:
         "Reynaers spans windows, doors, sliding walls and curtain wall on one Belgian platform, MasterLine 8, CS 77, CP 155, CW 50, each engineered to its own insulation and security rating.",
     },
+    logo: { src: "/brand/logos/reynaers.webp", alt: "Reynaers Aluminium Systems logo" },
     blocks: [
       {
         eyebrow: "BELGIAN ENGINEERING. RECHECKED FOR THIS CLIMATE.",

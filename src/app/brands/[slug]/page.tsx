@@ -1,5 +1,6 @@
 import { SITE_URL } from "@/lib/site";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { QuoteButton, ShowroomButton } from "@/components/forms/CTAButtons";
@@ -77,20 +78,40 @@ export default async function BrandPage({ params }: Props) {
               <span className="text-[#6b7280]">{brand.name}</span>
             </nav>
           </ScrollReveal>
-          <ScrollReveal delay={0.1}>
-            <p className="text-label text-[#007969] mb-3 md:mb-4">Brand Partner</p>
-            <h1 className="text-headline text-[#1c1c1e] mb-3 md:mb-4 max-w-3xl">{brand.hero.h1}</h1>
-            <p className="text-base md:text-xl text-[#6b7280] italic mb-6 md:mb-8">{brand.hero.tagline}</p>
-          </ScrollReveal>
-          <ScrollReveal delay={0.2}>
-            <p className="text-body-lg text-[#6b7280] max-w-2xl">{brand.hero.description}</p>
-          </ScrollReveal>
-          <ScrollReveal delay={0.3}>
-            <div className="flex flex-col sm:flex-row gap-3 mt-8">
-              <QuoteButton className="btn-brand">Get a Quote</QuoteButton>
-              <ShowroomButton className="btn-outline">Book Showroom Visit</ShowroomButton>
+          <div className={brand.logo ? "grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-8 lg:gap-16 items-center" : undefined}>
+            <div className="min-w-0">
+              <ScrollReveal delay={0.1}>
+                <p className="text-label text-[#007969] mb-3 md:mb-4">Brand Partner</p>
+                <h1 className="text-headline text-[#1c1c1e] mb-3 md:mb-4 max-w-3xl">{brand.hero.h1}</h1>
+                <p className="text-base md:text-xl text-[#6b7280] italic mb-6 md:mb-8">{brand.hero.tagline}</p>
+              </ScrollReveal>
+              <ScrollReveal delay={0.2}>
+                <p className="text-body-lg text-[#6b7280] max-w-2xl">{brand.hero.description}</p>
+              </ScrollReveal>
+              <ScrollReveal delay={0.3}>
+                <div className="flex flex-col sm:flex-row gap-3 mt-8">
+                  <QuoteButton className="btn-brand">Get a Quote</QuoteButton>
+                  <ShowroomButton className="btn-outline">Book Showroom Visit</ShowroomButton>
+                </div>
+              </ScrollReveal>
             </div>
-          </ScrollReveal>
+            {brand.logo && (
+              <ScrollReveal delay={0.2}>
+                <div className="relative h-32 md:h-44 bg-[#f8f9fa] border border-gray-100 flex items-center justify-center p-8">
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={brand.logo.src}
+                      alt={brand.logo.alt}
+                      fill
+                      priority
+                      sizes="(max-width: 1024px) 100vw, 40vw"
+                      className="object-contain"
+                    />
+                  </div>
+                </div>
+              </ScrollReveal>
+            )}
+          </div>
         </div>
       </section>
 
