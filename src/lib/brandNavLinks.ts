@@ -10,4 +10,5 @@ export const BRAND_NAV_LINKS: BrandNavLink[] = [
   { label: "Gulf Extrusions", href: "/brands/gulf-extrusions-aluminium-systems" },
   { label: "Deceuninck", href: "/brands/deceuninck-upvc-windows-doors" },
   { label: "UltraFrame", href: "/brands/ultraframe-roof-systems" },
+  { label: "Vetromax", href: "/brands/vetromax" },
 ];
