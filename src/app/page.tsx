@@ -46,25 +46,6 @@ export default async function Home() {
   settings.hero.subheading =
     "Engineered to perform. Built to outlast. Premium aluminium doors and windows in Dubai and across the UAE, complemented by high-performance uPVC and glazing systems, installed by our certified specialists.";
   const localBusinessSchema = buildLocalBusinessSchema(siteSettings.contact);
-  const reviewSchema = {
-    "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    "@id": `${SITE_URL}/#business`,
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.9",
-      reviewCount: "127",
-      bestRating: "5",
-      worstRating: "1",
-    },
-    review: testimonials.slice(0, 4).map((t) => ({
-      "@type": "Review",
-      reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" },
-      author: { "@type": "Person", name: t.author },
-      reviewBody: t.quote,
-      name: `${t.product} — ${t.location}`,
-    })),
-  };
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -74,7 +55,6 @@ export default async function Home() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <HomeClient
         settings={settings}
