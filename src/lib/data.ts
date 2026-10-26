@@ -78,6 +78,9 @@ export type BlogPost = {
   readTime: string;
   image: string;
   imageAlt?: string;
+  // When set, the cover is shown whole at this aspect ratio instead of being
+  // cropped to the banner box (for designed covers with text on them).
+  imageSize?: { width: number; height: number };
   body: { heading?: string; paragraphs: string[] }[];
   // Rich body (headings, lists, links, inline images); when set, it is
   // rendered instead of `body`. See src/lib/blog-content/.
@@ -1928,6 +1931,7 @@ export const blogPosts: BlogPost[] = [
     readTime: "7 min read",
     image: "/images/blog/curtain-wall-installation-dubai.jpg",
     imageAlt: "Get Aluminium facade systems and curtain wall facade system installation in Dubai - Swiftrooms",
+    imageSize: { width: 875, height: 437 },
     body: [],
     portableText: curtainWallInstallationDubai,
     relatedProducts: [{ name: "Curtain Wall Systems", href: "/catalogue/curtain-wall" }],
