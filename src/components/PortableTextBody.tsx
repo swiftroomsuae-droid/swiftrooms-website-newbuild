@@ -75,6 +75,25 @@ const components: PortableTextComponents = {
   },
   types: {
     image: ({ value }) => {
+      // Local image from /public (data.ts posts): natural aspect ratio, no
+      // crop, since these are often banners with text. Optional link.
+      if (typeof value?.src === "string") {
+        const pic = (
+          <Image
+            src={value.src}
+            alt={(value.alt as string) ?? ""}
+            width={value.width as number}
+            height={value.height as number}
+            className="w-full h-auto"
+            sizes="(max-width: 1024px) 100vw, 66vw"
+          />
+        );
+        return (
+          <figure className="my-8">
+            {value.href ? <Link href={value.href as string}>{pic}</Link> : pic}
+          </figure>
+        );
+      }
       if (!value?.asset) return null;
       const alt = (value.alt as string) ?? "";
       return (

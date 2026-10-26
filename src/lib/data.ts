@@ -1,3 +1,5 @@
+import { curtainWallInstallationDubai } from "./blog-content/curtain-wall-installation-dubai";
+
 // ─── Types ─────────────────────────────────────────────────────────────────
 
 export type Brand = {
@@ -75,7 +77,11 @@ export type BlogPost = {
   excerpt: string;
   readTime: string;
   image: string;
+  imageAlt?: string;
   body: { heading?: string; paragraphs: string[] }[];
+  // Rich body (headings, lists, links, inline images); when set, it is
+  // rendered instead of `body`. See src/lib/blog-content/.
+  portableText?: unknown[];
   relatedProducts?: { name: string; href: string }[];
 };
 
@@ -1912,6 +1918,20 @@ export const faqs: FAQ[] = [
 // ─── Blog Posts ─────────────────────────────────────────────────────────────
 
 export const blogPosts: BlogPost[] = [
+  {
+    slug: "curtain-wall-installation-dubai",
+    date: "October 2026",
+    category: "Technical Guide",
+    title: "Curtain Wall Installation in Dubai: How Proper Specification Supports Long-Term Facade Performance",
+    excerpt:
+      "How proper specification of aluminium framing, glazing, sealing and installation helps curtain wall facades in Dubai perform for decades in the UAE climate.",
+    readTime: "7 min read",
+    image: "/images/blog/curtain-wall-installation-dubai.jpg",
+    imageAlt: "Get Aluminium facade systems and curtain wall facade system installation in Dubai - Swiftrooms",
+    body: [],
+    portableText: curtainWallInstallationDubai,
+    relatedProducts: [{ name: "Curtain Wall Systems", href: "/catalogue/curtain-wall" }],
+  },
   {
     slug: "window-ratings-standards-uae",
     date: "July 2026",

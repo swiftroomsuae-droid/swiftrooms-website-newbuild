@@ -10,9 +10,9 @@
 import { stegaClean } from "next-sanity";
 import { blogPosts, type BlogPost } from "@/lib/data";
 
-// Article = the normalised BlogPost, plus the raw Portable Text body for
-// Sanity-sourced posts (rendered richly; data.ts posts leave it undefined).
-export type Article = BlogPost & { portableText?: unknown };
+// Article = the normalised BlogPost. `portableText` carries the raw Portable
+// Text body for Sanity-sourced posts (and rich data.ts posts), rendered richly.
+export type Article = BlogPost;
 
 const MONTHS: Record<string, number> = {
   January: 1, February: 2, March: 3, April: 4, May: 5, June: 6,

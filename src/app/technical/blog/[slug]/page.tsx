@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: `${SITE_URL}/technical/blog/${post.slug}`,
       images: [
         post.image
-          ? { url: post.image, alt: post.title }
+          ? { url: post.image, alt: post.imageAlt ?? post.title }
           : { url: `${SITE_URL}/brand/og-default.jpg`, width: 1200, height: 630, alt: post.title },
       ],
       publishedTime: post.date,
@@ -63,7 +63,7 @@ export default async function BlogPostPage({ params }: Props) {
     "@type": "Article",
     headline: post.title,
     description: post.excerpt,
-    image: post.image,
+    image: post.image.startsWith("/") ? `${SITE_URL}${post.image}` : post.image,
     datePublished: post.date,
     dateModified: post.date,
     author: {
@@ -144,7 +144,7 @@ export default async function BlogPostPage({ params }: Props) {
           <div className="w-full h-[40vh] md:h-[55vh] relative overflow-hidden">
             <Image
               src={post.image}
-              alt={post.title}
+              alt={post.imageAlt ?? post.title}
               fill
               className="object-cover"
               priority
