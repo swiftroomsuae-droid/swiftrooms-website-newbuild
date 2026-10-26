@@ -141,16 +141,28 @@ export default async function BlogPostPage({ params }: Props) {
       {/* Cover image */}
       <section className="mt-10 md:mt-16 max-w-screen-xl mx-auto px-5 md:px-8 lg:px-10">
         <ScrollReveal>
-          <div className="w-full h-[40vh] md:h-[55vh] relative overflow-hidden">
+          {post.imageSize ? (
             <Image
               src={post.image}
               alt={post.imageAlt ?? post.title}
-              fill
-              className="object-cover"
+              width={post.imageSize.width}
+              height={post.imageSize.height}
+              className="w-full h-auto"
               priority
               sizes="100vw"
             />
-          </div>
+          ) : (
+            <div className="w-full h-[40vh] md:h-[55vh] relative overflow-hidden">
+              <Image
+                src={post.image}
+                alt={post.imageAlt ?? post.title}
+                fill
+                className="object-cover"
+                priority
+                sizes="100vw"
+              />
+            </div>
+          )}
         </ScrollReveal>
       </section>
 
