@@ -138,7 +138,11 @@ async function run() {
       publishedAt: publishedAtFromDate(post.date),
       readTime: post.readTime,
       ...(mainImage ? { mainImage } : {}),
-      body: toPortableText(post.body),
+      // Rich data.ts posts already carry Portable Text; local /public images
+      // have no Sanity asset, so they are left for an editor to re-add.
+      body: post.portableText
+        ? post.portableText.filter((b) => (b as { _type?: string })._type === "block")
+        : toPortableText(post.body),
       ...(post.relatedProducts && post.relatedProducts.length > 0
         ? {
             relatedProducts: post.relatedProducts.map((p) => ({
