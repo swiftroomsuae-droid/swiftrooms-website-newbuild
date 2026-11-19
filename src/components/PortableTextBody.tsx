@@ -96,18 +96,36 @@ const components: PortableTextComponents = {
       }
       if (!value?.asset) return null;
       const alt = (value.alt as string) ?? "";
+      const src = urlFor(value).width(1400).fit("max").url();
+      // A Sanity asset ref encodes the original size: image-<id>-<w>x<h>-<ext>.
+      // When we can read it, show the image whole at its natural ratio so
+      // banners with baked-in text (logos, CTAs) are never cropped.
+      const dims = /-(\d+)x(\d+)-[a-z]+$/i.exec(
+        String((value.asset as { _ref?: string; _id?: string })._ref ?? (value.asset as { _id?: string })._id ?? ""),
+      );
+      const caption = alt && <figcaption className="text-xs text-gray-400 mt-2">{alt}</figcaption>;
+      if (dims) {
+        return (
+          <figure className="my-8">
+            <Image
+              src={src}
+              alt={alt}
+              width={Number(dims[1])}
+              height={Number(dims[2])}
+              className="w-full h-auto"
+              sizes="(max-width: 1024px) 100vw, 66vw"
+            />
+            {caption}
+          </figure>
+        );
+      }
+      // Fallback (size unknown): fixed 16:9 box, cropped to fit.
       return (
         <figure className="my-8">
           <div className="relative w-full aspect-[16/9] overflow-hidden bg-[#f0fdf4]">
-            <Image
-              src={urlFor(value).width(1400).fit("max").url()}
-              alt={alt}
-              fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 66vw"
-            />
+            <Image src={src} alt={alt} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 66vw" />
           </div>
-          {alt && <figcaption className="text-xs text-gray-400 mt-2">{alt}</figcaption>}
+          {caption}
         </figure>
       );
     },
