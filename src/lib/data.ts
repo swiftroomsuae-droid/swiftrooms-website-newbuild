@@ -1,4 +1,5 @@
 import { curtainWallInstallationDubai } from "./blog-content/curtain-wall-installation-dubai";
+import { foldingDoorsUae } from "./blog-content/folding-doors-uae-benefits-types-tips";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -1921,6 +1922,21 @@ export const faqs: FAQ[] = [
 // ─── Blog Posts ─────────────────────────────────────────────────────────────
 
 export const blogPosts: BlogPost[] = [
+  {
+    slug: "folding-doors-uae-benefits-types-tips",
+    date: "November 2026",
+    category: "Buying Guide",
+    title: "Folding Doors in the UAE: Benefits, Types, and Tips for Choosing the Right Bifold Doors",
+    excerpt:
+      "Explore how folding and bifold doors work, the glass, aluminium, wooden and uPVC options, where they suit homes and commercial spaces, and what to check before buying in the UAE.",
+    readTime: "6 min read",
+    image: "/images/blog/folding-doors-uae-benefits-types-tips.jpg",
+    imageAlt: "Get to know about the benefits,types and tips of folding doors in the UAE.",
+    imageSize: { width: 875, height: 437 },
+    body: [],
+    portableText: foldingDoorsUae,
+    relatedProducts: [{ name: "Aluminium Bi-Fold Doors", href: "/catalogue/aluminium-bi-folding-doors" }],
+  },
   {
     slug: "curtain-wall-installation-dubai",
     date: "October 2026",
