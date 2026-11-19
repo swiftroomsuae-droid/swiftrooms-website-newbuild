@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { QuoteButton, ShowroomButton } from "@/components/forms/CTAButtons";
-import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import ScrollReveal from "@/components/ui/ScrollReveal";
+import BlogCover from "@/components/BlogCover";
 import type { BlogPost } from "@/lib/data";
 import type { PageHero } from "@/lib/pageSettings";
 
@@ -99,10 +99,9 @@ export default function BlogClient({ posts, hero }: { posts: BlogPost[]; hero?: 
                     className="group mb-px flex flex-col md:flex-row bg-white hover:bg-[#f8f9fa] transition-colors duration-300 overflow-hidden border-b border-gray-100"
                   >
                     <div className="w-full md:w-1/2 h-56 md:h-80 relative overflow-hidden flex-shrink-0">
-                      <Image
+                      <BlogCover
                         src={filtered[0].image}
                         alt={filtered[0].title}
-                        fill
                         className="object-cover group-hover:scale-105 transition-transform duration-700"
                         sizes="(max-width: 768px) 100vw, 50vw"
                         priority
@@ -146,10 +145,9 @@ export default function BlogClient({ posts, hero }: { posts: BlogPost[]; hero?: 
                         className="group block bg-white hover:bg-[#f8f9fa] transition-colors duration-300 h-full flex flex-col overflow-hidden"
                       >
                         <div className="h-36 sm:h-44 relative overflow-hidden flex-shrink-0">
-                          <Image
+                          <BlogCover
                             src={post.image}
                             alt={post.title}
-                            fill
                             className="object-cover group-hover:scale-105 transition-transform duration-700"
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           />
