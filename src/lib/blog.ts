@@ -79,6 +79,19 @@ async function normalize(p: RawSanityPost): Promise<Article> {
       image = "";
     }
   }
+  // Designed covers (wide ~2:1 banners with the title/logo baked in) must be
+  // shown whole, not cropped to the hero box. A Sanity asset ref encodes the
+  // original size (image-<id>-<w>x<h>-<ext>); only that wide ratio opts in, so
+  // ordinary 3:2 / portrait photo covers keep the cropped hero.
+  let imageSize: BlogPost["imageSize"];
+  const cover = p.mainImage as { asset?: { _ref?: string }; alt?: string } | undefined;
+  const dims = /-(\d+)x(\d+)-[a-z]+$/i.exec(cover?.asset?._ref ?? "");
+  if (dims) {
+    const w = Number(dims[1]);
+    const h = Number(dims[2]);
+    if (w / h >= 1.9 && w / h <= 2.1) imageSize = { width: w, height: h };
+  }
+  const imageAlt = cover?.alt ? stegaClean(cover.alt) : undefined;
   // In Draft Mode, Sanity strings arrive stega-encoded (invisible characters
   // that power click-to-edit overlays). Strip it from any value used for
   // routing, keys, sorting or matching so links and logic never break; keep it
@@ -92,6 +105,8 @@ async function normalize(p: RawSanityPost): Promise<Article> {
     excerpt: p.excerpt ?? "",
     readTime: stegaClean(p.readTime) ?? "",
     image,
+    imageAlt,
+    imageSize,
     body: portableTextToSections(p.body),
     portableText: Array.isArray(p.body) ? p.body : undefined,
     relatedProducts: p.relatedProducts?.map((rp) => ({
