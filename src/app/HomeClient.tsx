@@ -6,6 +6,7 @@ import { QuoteButton, ShowroomButton } from "@/components/forms/CTAButtons";
 import Image from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
 import ScrollReveal from "@/components/ui/ScrollReveal";
+import BlogCover from "@/components/BlogCover";
 import ProductSelector from "@/components/ProductSelector";
 import type { HomeSettings } from "@/lib/homepage";
 import type { ProductCategory, BlogPost, Testimonial } from "@/lib/data";
@@ -1026,10 +1027,9 @@ export default function HomeClient({
                   className="group block bg-white hover:bg-[#f8f9fa] transition-colors h-full"
                 >
                   <div className="h-44 relative overflow-hidden">
-                    <Image
+                    <BlogCover
                       src={post.image}
                       alt={post.title}
-                      fill
                       className="object-cover group-hover:scale-105 transition-transform duration-700"
                       sizes="(max-width: 768px) 100vw, 33vw"
                     />

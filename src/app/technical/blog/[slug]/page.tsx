@@ -6,6 +6,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import ScrollReveal from "@/components/ui/ScrollReveal";
 import PortableTextBody from "@/components/PortableTextBody";
+import BlogCover from "@/components/BlogCover";
 import type { PortableTextBlock } from "@portabletext/react";
 import { getArticle, getArticles, getArticleSlugs } from "@/lib/blog";
 
@@ -63,7 +64,7 @@ export default async function BlogPostPage({ params }: Props) {
     "@type": "Article",
     headline: post.title,
     description: post.excerpt,
-    image: post.image.startsWith("/") ? `${SITE_URL}${post.image}` : post.image,
+    image: post.image ? (post.image.startsWith("/") ? `${SITE_URL}${post.image}` : post.image) : undefined,
     datePublished: post.date,
     dateModified: post.date,
     author: {
@@ -138,7 +139,8 @@ export default async function BlogPostPage({ params }: Props) {
         </div>
       </section>
 
-      {/* Cover image */}
+      {/* Cover image (skipped when the post has none) */}
+      {post.image && (
       <section className="mt-10 md:mt-16 max-w-screen-xl mx-auto px-5 md:px-8 lg:px-10">
         <ScrollReveal>
           {post.imageSize ? (
@@ -165,6 +167,7 @@ export default async function BlogPostPage({ params }: Props) {
           )}
         </ScrollReveal>
       </section>
+      )}
 
       {/* Article body */}
       <section className="py-16 md:py-24">
@@ -312,10 +315,9 @@ export default async function BlogPostPage({ params }: Props) {
                     className="group block bg-white hover:bg-[#f8f9fa] transition-colors h-full"
                   >
                     <div className="h-36 relative overflow-hidden">
-                      <Image
+                      <BlogCover
                         src={rel.image}
                         alt={rel.title}
-                        fill
                         className="object-cover group-hover:scale-105 transition-transform duration-700"
                         sizes="(max-width: 768px) 100vw, 33vw"
                       />

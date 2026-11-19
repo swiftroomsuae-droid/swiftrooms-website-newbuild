@@ -5,6 +5,7 @@ import Link from "next/link";
 import { QuoteButton, ShowroomButton } from "@/components/forms/CTAButtons";
 import Image from "next/image";
 import ScrollReveal from "@/components/ui/ScrollReveal";
+import BlogCover from "@/components/BlogCover";
 import { getArticles } from "@/lib/blog";
 import { getGeneralFaqs } from "@/lib/faqs";
 
@@ -195,17 +196,14 @@ export default async function TechnicalPage() {
                   href={`/technical/blog/${post.slug}`}
                   className="group block bg-white hover:bg-[#f0fdf4] transition-colors h-full"
                 >
-                  {post.image && (
-                    <div className="h-36 relative overflow-hidden">
-                      <Image
-                        src={post.image}
-                        alt={post.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-700"
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                      />
-                    </div>
-                  )}
+                  <div className="h-36 relative overflow-hidden">
+                    <BlogCover
+                      src={post.image}
+                      alt={post.title}
+                      className="object-cover group-hover:scale-105 transition-transform duration-700"
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                    />
+                  </div>
                   <div className="p-5 md:p-6">
                     <p className="text-[0.6rem] tracking-widest uppercase text-[#007969] mb-2">{post.category}</p>
                     <p className="font-semibold text-[#1c1c1e] mb-2 group-hover:text-[#007969] transition-colors leading-snug">
