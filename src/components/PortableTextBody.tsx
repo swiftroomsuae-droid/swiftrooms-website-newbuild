@@ -104,17 +104,24 @@ const components: PortableTextComponents = {
         String((value.asset as { _ref?: string; _id?: string })._ref ?? (value.asset as { _id?: string })._id ?? ""),
       );
       const caption = alt && <figcaption className="text-xs text-gray-400 mt-2">{alt}</figcaption>;
+      // Optional editor-set link (e.g. a banner that points to /contact). Only
+      // site-relative paths and http(s) URLs are honoured, never javascript:/data:.
+      const rawHref = typeof value.href === "string" ? value.href.trim() : "";
+      const href = /^(\/(?!\/)|https?:\/\/)/i.test(rawHref) ? rawHref : "";
       if (dims) {
+        const pic = (
+          <Image
+            src={src}
+            alt={alt}
+            width={Number(dims[1])}
+            height={Number(dims[2])}
+            className="w-full h-auto"
+            sizes="(max-width: 1024px) 100vw, 66vw"
+          />
+        );
         return (
           <figure className="my-8">
-            <Image
-              src={src}
-              alt={alt}
-              width={Number(dims[1])}
-              height={Number(dims[2])}
-              className="w-full h-auto"
-              sizes="(max-width: 1024px) 100vw, 66vw"
-            />
+            {href ? <Link href={href}>{pic}</Link> : pic}
             {caption}
           </figure>
         );
