@@ -66,7 +66,22 @@ export const postType = defineType({
       name: "body",
       title: "Body",
       type: "array",
-      of: [{ type: "block" }, { type: "image", options: { hotspot: true } }],
+      of: [
+        { type: "block" },
+        {
+          type: "image",
+          options: { hotspot: true },
+          fields: [
+            defineField({ name: "alt", title: "Alt text", type: "string" }),
+            defineField({
+              name: "href",
+              title: "Link (optional)",
+              type: "string",
+              description: 'Makes the image clickable, e.g. "/contact". Site paths or https:// URLs only.',
+            }),
+          ],
+        },
+      ],
     }),
     defineField({
       name: "relatedProducts",
